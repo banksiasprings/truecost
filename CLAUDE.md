@@ -9,8 +9,8 @@
 **Type:** Progressive Web App (PWA) — mobile-first, installable, works offline
 **Owner:** Steven McNichol (smcnichol@outlook.com)
 **Location:** ~/Documents/truecost/
-**GitHub:** TBD — will be banksiasprings/truecost or similar
-**Live URL:** TBD — GitHub Pages
+**GitHub:** banksiasprings/truecost
+**Live URL:** https://banksiasprings.github.io/truecost/
 
 ---
 
