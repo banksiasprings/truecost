@@ -1,0 +1,102 @@
+/* TRUE COST — layout.css
+   Structure only. NO colour values. Use var(--color-*) only.
+*/
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  background: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* App shell */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  position: relative;
+}
+
+/* Bottom nav */
+#bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--max-width);
+  height: var(--nav-height);
+  display: flex;
+  align-items: stretch;
+  z-index: 100;
+}
+
+/* Page content area (above nav) */
+#page-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4) var(--space-4) calc(var(--nav-height) + var(--space-4));
+}
+
+/* Header */
+.page-header {
+  padding: var(--space-6) var(--space-4) var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Cards */
+.card {
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-4);
+}
+
+/* Grid helpers */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); }
+
+/* Form layout */
+.form-group { margin-bottom: var(--space-4); }
+.form-row { display: flex; gap: var(--space-3); }
+.form-row .form-group { flex: 1; }
+
+/* Cost breakdown row */
+.cost-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) 0;
+}
+.cost-row + .cost-row {
+  border-top: 1px solid var(--color-border);
+}
+
+/* Vehicle comparison columns */
+.compare-grid {
+  display: grid;
+  gap: var(--space-3);
+  overflow-x: auto;
+}
+.compare-grid[data-count="2"] { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+.compare-grid[data-count="3"] { grid-template-columns: repeat(3, minmax(120px, 1fr)); }
+.compare-grid[data-count="4"] { grid-template-columns: repeat(4, minmax(110px, 1fr)); }
+
+/* Utility */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.gap-2 { gap: var(--space-2); }
+.gap-4 { gap: var(--space-4); }
+.mt-4 { margin-top: var(--space-4); }
+.mb-4 { margin-bottom: var(--space-4); }
+.text-right { text-align: right; }
+.hidden { display: none !important; }

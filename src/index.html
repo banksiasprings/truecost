@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#2D5016">
+  <meta name="description" content="TRUE COST — Know what your car actually costs. Australian vehicle total cost of ownership calculator.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="TrueCost">
+
+  <title>TRUE COST</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- Page content area -->
+  <main id="page-content" role="main">
+
+    <!-- ── PAGE: Vehicles (home) ── -->
+    <section id="page-vehicles" class="page">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">My Vehicles</h1>
+          <p class="page-subtitle">Compare total ownership costs</p>
+        </div>
+        <button class="btn btn-primary btn-sm btn-pill" id="btn-add-vehicle" aria-label="Add vehicle">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add
+        </button>
+      </div>
+
+      <!-- Vehicle list (populated by JS) -->
+      <div id="vehicle-list"></div>
+
+      <!-- Empty state shown when no vehicles -->
+      <div id="vehicles-empty" class="empty-state hidden">
+        <div class="empty-state-icon">🚗</div>
+        <h2 class="empty-state-title">No vehicles yet</h2>
+        <p class="empty-state-desc">Add your first vehicle to start calculating the true cost of ownership.</p>
+        <button class="btn btn-primary btn-pill" id="btn-add-first">Add Your First Vehicle</button>
+      </div>
+    </section>
+
+    <!-- ── PAGE: Add / Edit Vehicle ── -->
+    <section id="page-add-vehicle" class="page hidden">
+      <div class="page-header">
+        <button class="btn btn-ghost btn-sm" id="btn-back-to-vehicles" aria-label="Back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div>
+          <h1 class="page-title" id="add-vehicle-title">Add Vehicle</h1>
+          <div class="steps" id="form-steps">
+            <div class="step-dot active" data-step="0"></div>
+            <div class="step-dot" data-step="1"></div>
+            <div class="step-dot" data-step="2"></div>
+            <div class="step-dot" data-step="3"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="vehicle-form-container"></div>
+    </section>
+
+    <!-- ── PAGE: Compare ── -->
+    <section id="page-compare" class="page hidden">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Compare</h1>
+          <p class="page-subtitle" id="compare-subtitle">Side-by-side cost breakdown</p>
+        </div>
+      </div>
+      <div id="compare-container">
+        <div class="empty-state">
+          <div class="empty-state-icon">📊</div>
+          <h2 class="empty-state-title">Add at least 2 vehicles</h2>
+          <p class="empty-state-desc">Compare up to 4 vehicles side-by-side across every cost category.</p>
+          <button class="btn btn-primary btn-pill" onclick="App.navigate('vehicles')">Go to Vehicles</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PAGE: Settings ── -->
+    <section id="page-settings" class="page hidden">
+      <div class="page-header">
+        <h1 class="page-title">Settings</h1>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">Scenario Defaults</h2>
+
+        <div class="form-group">
+          <label class="label" for="setting-years">Ownership period</label>
+          <div class="select-wrapper">
+            <select class="select" id="setting-years">
+              <option value="3">3 years</option>
+              <option value="5" selected>5 years</option>
+              <option value="7">7 years</option>
+              <option value="10">10 years</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="label" for="setting-km">Annual kilometres</label>
+          <div class="input-prefix">
+            <span class="prefix-label">km/yr</span>
+            <input type="number" class="input" id="setting-km" value="15000" min="1000" max="100000" step="1000" style="padding-left:60px">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="label" for="setting-state">State</label>
+          <div class="select-wrapper">
+            <select class="select" id="setting-state">
+              <option value="QLD" selected>QLD</option>
+              <option value="NSW">NSW</option>
+              <option value="VIC">VIC</option>
+              <option value="SA">SA</option>
+              <option value="WA">WA</option>
+              <option value="ACT">ACT</option>
+              <option value="TAS">TAS</option>
+              <option value="NT">NT</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="label" for="setting-opportunity">Opportunity cost rate</label>
+          <div class="input-prefix">
+            <span class="prefix-label">%</span>
+            <input type="number" class="input" id="setting-opportunity" value="4.5" min="0" max="20" step="0.5" style="padding-left:40px">
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-top:var(--space-2)">
+            Expected return if purchase price was invested instead
+          </p>
+        </div>
+
+        <button class="btn btn-primary btn-full btn-pill mt-4" id="btn-save-settings">Save Settings</button>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">About</h2>
+        <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);line-height:var(--line-height-relaxed)">
+          TRUE COST calculates every dimension of vehicle ownership cost over your chosen period —
+          depreciation, fuel, insurance, registration, servicing, tyres, and lost capital.
+        </p>
+        <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-top:var(--space-4)">
+          Version 1.0 &nbsp;&middot;&nbsp; Made in Australia
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Bottom Navigation ── -->
+  <nav id="bottom-nav" role="navigation" aria-label="Main navigation">
+    <button class="nav-btn active" data-page="vehicles" aria-label="My Vehicles">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="1" y="3" width="15" height="13" rx="2"/>
+        <path d="M16 8h4l3 6v3h-7V8z"/>
+        <circle cx="5.5" cy="18.5" r="2.5"/>
+        <circle cx="18.5" cy="18.5" r="2.5"/>
+      </svg>
+      Vehicles
+    </button>
+    <button class="nav-btn" data-page="compare" aria-label="Compare">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="20" x2="18" y2="10"/>
+        <line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+      Compare
+    </button>
+    <button class="nav-btn" data-page="settings" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      Settings
+    </button>
+  </nav>
+
+  <!-- Toast notifications container -->
+  <div class="toast-container" id="toast-container"></div>
+
+</div><!-- #app -->
+
+<!-- Scripts (module order matters) -->
+<script src="js/data/australia.js"></script>
+<script src="js/data/defaults.js"></script>
+<script src="js/data/model.js"></script>
+<script src="js/data/storage.js"></script>
+<script src="js/calc/depreciation.js"></script>
+<script src="js/calc/fuel.js"></script>
+<script src="js/calc/battery.js"></script>
+<script src="js/calc/registration.js"></script>
+<script src="js/calc/insurance.js"></script>
+<script src="js/calc/engine.js"></script>
+<script src="js/ui/router.js"></script>
+<script src="js/ui/forms.js"></script>
+<script src="js/ui/vehicle-card.js"></script>
+<script src="js/ui/comparison.js"></script>
+<script src="js/ui/app.js"></script>
+
+<script>
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.warn('SW registration failed:', err));
+    });
+  }
+</script>
+</body>
+</html>

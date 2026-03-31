@@ -1,0 +1,87 @@
+/* ============================================================
+   TRUE COST — theme.css
+   SWAP THIS FILE TO COMPLETELY RETHEME THE APP
+   All other CSS files use var() references only.
+   ============================================================ */
+
+:root {
+  /* Brand colours */
+  --color-primary:        #2D5016;
+  --color-primary-light:  #3D6B20;
+  --color-primary-dark:   #1E3610;
+  --color-accent:         #E8572A;
+  --color-accent-hover:   #D44C22;
+  --color-accent-muted:   #F7C4B4;
+
+  /* Backgrounds */
+  --color-bg:             #FAFAF8;
+  --color-bg-card:        #FFFFFF;
+  --color-bg-input:       #F5F5F0;
+  --color-bg-nav:         #FFFFFF;
+
+  /* Text */
+  --color-text:           #1C1C1E;
+  --color-text-secondary: #6B6B6B;
+  --color-text-muted:     #9A9A9A;
+  --color-text-inverse:   #FFFFFF;
+
+  /* Semantic */
+  --color-success:        #2A7A2A;
+  --color-warning:        #B87800;
+  --color-error:          #C62828;
+  --color-ev:             #1976D2;
+  --color-petrol:         #E8572A;
+  --color-diesel:         #5D4037;
+  --color-hybrid:         #2D5016;
+
+  /* Borders */
+  --color-border:         #E0E0D8;
+  --color-border-focus:   #2D5016;
+
+  /* Typography */
+  --font-family:          system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-size-xs:         11px;
+  --font-size-sm:         13px;
+  --font-size-base:       16px;
+  --font-size-md:         18px;
+  --font-size-lg:         22px;
+  --font-size-xl:         26px;
+  --font-size-2xl:        32px;
+  --font-weight-normal:   400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+  --line-height-tight:    1.2;
+  --line-height-normal:   1.5;
+
+  /* Spacing */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Border radius */
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   14px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md:   0 2px 8px rgba(0,0,0,0.10);
+  --shadow-lg:   0 4px 16px rgba(0,0,0,0.14);
+  --shadow-xl:   0 8px 32px rgba(0,0,0,0.16);
+
+  /* Transitions */
+  --transition-fast:   0.12s ease;
+  --transition-normal: 0.22s ease;
+
+  /* Layout */
+  --nav-height:  56px;
+  --max-width:   520px;
+}
