@@ -10,7 +10,7 @@ function createVehicle(overrides = {}) {
   const defaults = {
     id, createdAt: now, updatedAt: now, notes: "",
     make: "", model: "", year: new Date().getFullYear(), variant: "",
-    bodyType: "sedan", fuelType: "petrol", engineSize: null, transmission: "auto",
+    bodyType: "sedan", fuelType: "petrol", engineSize: null, transmission: "auto", driveType: null, doors: null, seats: null, colour: null, ancap: null, cylinders: null,
     listPrice: 0, purchasePrice: 0, isNew: false, purchaseOdometer: 0,
     condition: "used", state: "QLD",
     stampDuty: 0, ctpInsurance: 0, dealerDelivery: 0, onRoadCost: 0,
