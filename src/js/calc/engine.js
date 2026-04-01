@@ -4,7 +4,12 @@
 /**
  * @param {Object} vehicle  - from data/model.js
  * @param {Object} scenario - { years, kmPerYear, opportunityCostRate, state }
- * @returns {Object} { total, perKm, perYear, summary }
+ * @returns {Object} {
+ *   summary: { totalOwnershipCost, costPerYear, costPerKm },
+ *   total:   { depreciation, fuel, battery, tyres, registration, insurance,
+ *              servicing, roadside, parking, tolls, lostCapital, financeInterest, finance },
+ *   breakdown: { <category>: { total, perKm, perYear } }
+ * }
  */
 function calculateCosts(vehicle, scenario) {
   const km = scenario.years * scenario.kmPerYear;
@@ -65,20 +70,39 @@ function calculateCosts(vehicle, scenario) {
     financePerYear = scenario.years > 0 ? financeTotal / scenario.years : 0;
   }
 
-  // Totals
-  const total = depreciation.total + fuel.total + battery.total
+  // Grand totals
+  const grandTotal = depreciation.total + fuel.total + battery.total
     + tyreCostTotal + registration.total + insurance.total
     + servicingTotal + roadsideTotal + parkingTotal + tollsTotal
     + lostCapitalTotal + financeTotal;
-
-  const perKm  = km > 0 ? total / km : 0;
-  const perYear = scenario.years > 0 ? total / scenario.years : 0;
+  const costPerKm  = km > 0 ? grandTotal / km : 0;
+  const costPerYear = scenario.years > 0 ? grandTotal / scenario.years : 0;
 
   return {
-    total,
-    perKm,
-    perYear,
+    // Top-level summary (UI-facing)
     summary: {
+      totalOwnershipCost: grandTotal,
+      costPerYear,
+      costPerKm,
+    },
+    // Per-category totals (UI-facing — flat numbers)
+    total: {
+      depreciation:    depreciation.total,
+      fuel:            fuel.total,
+      battery:         battery.total,
+      tyres:           tyreCostTotal,
+      registration:    registration.total,
+      insurance:       insurance.total,
+      servicing:       servicingTotal,
+      roadside:        roadsideTotal,
+      parking:         parkingTotal,
+      tolls:           tollsTotal,
+      lostCapital:     lostCapitalTotal,
+      financeInterest: financeTotal,
+      finance:         financeTotal,   // alias used in detail.js
+    },
+    // Full per-category breakdown with perKm / perYear
+    breakdown: {
       depreciation:    { total: depreciation.total,  perKm: depreciation.perKm,  perYear: depreciation.perYear },
       fuel:            { total: fuel.total,           perKm: fuel.perKm,          perYear: fuel.perYear },
       battery:         { total: battery.total,        perKm: battery.perKm,       perYear: battery.perYear },
@@ -99,7 +123,6 @@ function calculateCosts(vehicle, scenario) {
 function fmtAUD(amount) {
   return '$' + Math.round(amount).toLocaleString('en-AU');
 }
-
 function fmtPerKm(perKm) {
   return (perKm * 100).toFixed(1) + 'c/km';
 }
