@@ -141,7 +141,26 @@ const Forms = {
         const el  = document.getElementById('ev-effective-rate');
         if (el) el.textContent = 'Effective rate: $' + eff.toFixed(2) + '/kWh';
       };
-      ['f-ev-home-pct','f-ev-home-rate','f-ev-pub-pct','f-ev-pub-rate'].forEach(id => {
+      // Link home % and public % so they always sum to 100
+      const homePctEl = document.getElementById('f-ev-home-pct');
+      const pubPctEl  = document.getElementById('f-ev-pub-pct');
+      if (homePctEl && pubPctEl) {
+        homePctEl.addEventListener('input', () => {
+          const pv = Math.min(100, Math.max(0, parseFloat(homePctEl.value) || 0));
+          homePctEl.value = pv;
+          pubPctEl.value  = 100 - pv;
+          if (this._vehicle) { this._vehicle.evHomePercent = pv; this._vehicle.evPublicPercent = 100 - pv; }
+          updateEffRate();
+        });
+        pubPctEl.addEventListener('input', () => {
+          const pv = Math.min(100, Math.max(0, parseFloat(pubPctEl.value) || 0));
+          pubPctEl.value  = pv;
+          homePctEl.value = 100 - pv;
+          if (this._vehicle) { this._vehicle.evPublicPercent = pv; this._vehicle.evHomePercent = 100 - pv; }
+          updateEffRate();
+        });
+      }
+      ['f-ev-home-rate','f-ev-pub-rate'].forEach(id => {
         document.getElementById(id)?.addEventListener('input', updateEffRate);
       });
       document.getElementById('f-phev-elec-pct')?.addEventListener('input', (e) => {
