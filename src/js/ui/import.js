@@ -116,42 +116,79 @@ var VehicleImport = (function () {
 
   function renderBookmarkletScreen() {
     var code = _bookmarkletCode();
-    var hrefCode = code.replace(/&/g, '&amp;').replace(/>/g, '&gt;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
-    return '<div class="import-bookmarklet">' +
-      '<h3 style="margin-bottom:var(--space-3)">Quick-Import Bookmark</h3>' +
-      '<p style="color:var(--color-text-muted);margin-bottom:var(--space-2);font-size:var(--font-size-sm)">' +
-        '<strong>One-time setup:</strong> Drag the button below to your bookmarks bar. ' +
-        'Then, whenever you\'re on a Carsales listing, tap that bookmark to send the car straight into TrueCost.' +
-      '</p>' +
-      '<div style="background:var(--color-bg-secondary);border-radius:var(--radius-md);' +
-        'padding:var(--space-4);text-align:center;margin:var(--space-4) 0">' +
-        '<a id="import-bookmarklet-drag" href="' + hrefCode + '"' +
-          ' style="display:inline-block;padding:10px 20px;background:var(--color-accent);' +
-          'color:#fff;border-radius:var(--radius-md);text-decoration:none;font-weight:600;cursor:grab"' +
-          ' onclick="event.preventDefault();alert(\'Drag this button to your bookmarks bar \u2014 don\\\'t click it here.\')">' +
-          '&#9889; Add to TrueCost' +
-        '</a>' +
+    var hrefCode = code.replace(/&/g, '&amp;').replace(/>/g, '&gt;').replace(/</g, '&lt;').replace(/\"/g, '&quot;');
+    return '<style>' +
+      '@keyframes bounce-up {' +
+        '0%, 100% { transform: translateY(0); }' +
+        '50% { transform: translateY(-8px); }' +
+      '}' +
+      '.import-arrow { animation: bounce-up 1.2s ease-in-out infinite; font-size: 2rem; display:block; text-align:center; margin-top:8px; }' +
+    '</style>' +
+    '<div class="import-bookmarklet">' +
+      '<h3 style="margin-bottom:var(--space-4)">Set Up Quick-Import Bookmark</h3>' +
+      '<div style="margin-bottom:var(--space-5)">' +
+        '<p style="font-weight:600;margin-bottom:var(--space-2)">' +
+          '<span style="background:var(--color-accent);color:#fff;border-radius:50%;width:1.5em;height:1.5em;display:inline-flex;align-items:center;justify-content:center;font-size:0.8em;margin-right:6px;flex-shrink:0">1</span>' +
+          'Show your bookmarks bar' +
+        '</p>' +
+        '<p style="color:var(--color-text-muted);font-size:var(--font-size-sm);margin-bottom:var(--space-3)">First, make sure your bookmarks bar is visible:</p>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
+          '<span style="background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:6px 14px;font-family:monospace;font-size:var(--font-size-sm);white-space:nowrap">\u2318 Shift B</span>' +
+          '<span style="color:var(--color-text-muted);font-size:var(--font-size-xs)">Mac</span>' +
+          '<span style="color:var(--color-text-muted);font-size:var(--font-size-xs)">\u2022</span>' +
+          '<span style="background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:6px 14px;font-family:monospace;font-size:var(--font-size-sm);white-space:nowrap">Ctrl Shift B</span>' +
+          '<span style="color:var(--color-text-muted);font-size:var(--font-size-xs)">Windows / Linux</span>' +
+        '</div>' +
       '</div>' +
-      '<p style="color:var(--color-text-muted);font-size:var(--font-size-xs);margin-bottom:var(--space-3)">' +
-        'Can\'t drag? Copy the code below and create a new bookmark manually, pasting it as the URL.' +
-      '</p>' +
-      '<textarea id="import-bookmarklet-code" rows="4" readonly' +
-        ' style="width:100%;font-size:10px;padding:var(--space-2);' +
-        'border:1px solid var(--color-border);border-radius:var(--radius-md);' +
-        'resize:none;box-sizing:border-box;font-family:monospace;' +
-        'background:var(--color-bg-secondary);word-break:break-all">' +
-        code +
-      '</textarea>' +
-      '<button class="btn btn-secondary btn-full" id="import-bookmarklet-copy-btn" style="margin-top:var(--space-3)">' +
-        'Copy Code' +
-      '</button>' +
-      '<button class="btn btn-ghost btn-full" id="import-bookmarklet-back-btn" style="margin-top:var(--space-2)">' +
+      '<div style="margin-bottom:var(--space-5)">' +
+        '<p style="font-weight:600;margin-bottom:var(--space-2)">' +
+          '<span style="background:var(--color-accent);color:#fff;border-radius:50%;width:1.5em;height:1.5em;display:inline-flex;align-items:center;justify-content:center;font-size:0.8em;margin-right:6px;flex-shrink:0">2</span>' +
+          'Drag the button to it' +
+        '</p>' +
+        '<p style="color:var(--color-text-muted);font-size:var(--font-size-sm);margin-bottom:var(--space-3)">Drag this button up to your bookmarks bar:</p>' +
+        '<div style="text-align:center;padding:var(--space-4) 0">' +
+          '<a id="import-bookmarklet-drag" href="' + hrefCode + '"' +
+            ' style="display:inline-block;padding:12px 24px;background:var(--color-accent);' +
+            'color:#fff;border-radius:var(--radius-md);text-decoration:none;font-weight:700;' +
+            'font-size:1.05rem;cursor:grab;box-shadow:0 2px 8px rgba(0,0,0,0.18)"' +
+            ' onclick="event.preventDefault();alert(\'Drag this button to your bookmarks bar \u2014 don\\\'t click it here.\')">' +
+            '&#9889; Add to TrueCost' +
+          '</a>' +
+          '<span class="import-arrow">\u2191</span>' +
+          '<p style="color:var(--color-text-muted);font-size:var(--font-size-xs);margin-top:var(--space-2)">Drag it \u2014 don\u2019t click it here</p>' +
+        '</div>' +
+      '</div>' +
+      '<div style="margin-bottom:var(--space-5);background:var(--color-bg-secondary);border-radius:var(--radius-md);padding:var(--space-4)">' +
+        '<p style="font-weight:600;margin-bottom:var(--space-2)">' +
+          '<span style="background:var(--color-accent);color:#fff;border-radius:50%;width:1.5em;height:1.5em;display:inline-flex;align-items:center;justify-content:center;font-size:0.8em;margin-right:6px;flex-shrink:0">3</span>' +
+          'Use it on any car listing' +
+        '</p>' +
+        '<p style="color:var(--color-text-muted);font-size:var(--font-size-sm)">Done! Now go to any Carsales listing and tap the bookmark. It\'ll open TrueCost with the car\'s details already filled in.</p>' +
+        '<p style="font-size:1.5rem;margin-top:var(--space-3);text-align:center">\uD83D\uDE97\u2192\uD83D\uDCF1</p>' +
+      '</div>' +
+      '<details style="margin-bottom:var(--space-4)">' +
+        '<summary style="cursor:pointer;color:var(--color-text-muted);font-size:var(--font-size-sm);list-style:none;user-select:none;padding:var(--space-2) 0">' +
+          '&#9658; Can\'t drag? Copy the code manually' +
+        '</summary>' +
+        '<div style="margin-top:var(--space-3)">' +
+          '<textarea id="import-bookmarklet-code" rows="4" readonly' +
+            ' style="width:100%;font-size:10px;padding:var(--space-2);' +
+            'border:1px solid var(--color-border);border-radius:var(--radius-md);' +
+            'resize:none;box-sizing:border-box;font-family:monospace;' +
+            'background:var(--color-bg-secondary);word-break:break-all">' +
+            code +
+          '</textarea>' +
+          '<button class="btn btn-secondary btn-full" id="import-bookmarklet-copy-btn" style="margin-top:var(--space-2)">' +
+            'Copy Code' +
+          '</button>' +
+        '</div>' +
+      '</details>' +
+      '<button class="btn btn-ghost btn-full" id="import-bookmarklet-back-btn">' +
         '\u2190 Back' +
       '</button>' +
     '</div>';
   }
-
-  function _bookmarkletCode() {
+    function _bookmarkletCode() {
     return 'javascript:(function(){var d=null;[].forEach.call(document.querySelectorAll(\'script[type="application/ld+json"]\'),function(s){try{var p=JSON.parse(s.textContent);if(p[\'@type\']&&[].concat(p[\'@type\']).indexOf(\'Vehicle\')>-1)d=p;}catch(e){}});if(!d){alert(\'Please open a Carsales car listing first, then tap Add to TrueCost.\');return;}var t=document.body.innerText;var km=t.match(/Odometer[\\s\\S]{0,15}?([\\d,]+)\\s*km/i);var fc=t.match(/([\\d.]+)\\s*L\\/100km/i);var q=[];function a(k,v){if(v)q.push(encodeURIComponent(k)+\'=\'+encodeURIComponent(v));}a(\'import\',1);a(\'src\',\'carsales\');a(\'url\',location.href);a(\'name\',d.name);a(\'make\',d.brand&&d.brand.name);a(\'model\',d.model);a(\'year\',d.vehicleModelDate);a(\'price\',d.offers&&d.offers.price);a(\'fuel\',(d.fuelType||"").toLowerCase());a(\'trans\',d.vehicleTransmission);a(\'body\',d.bodyType);a(\'cond\',d.itemCondition&&d.itemCondition.indexOf(\'Used\')>-1?\'used\':\'new\');a(\'odo\',km?km[1].replace(/,/g,""):"");a(\'fc\',fc?fc[1]:"");window.open(\'https://banksiasprings.github.io/truecost/?\'+q.join(\'&\'),\'_blank\');})();';
   }
 
