@@ -59,6 +59,7 @@ const App = {
     Router.register("compare",     () => Comparison.render(this.settings));
     Router.register("settings",    () => this.loadSettingsUI());
     Router.register("add-vehicle", (params) => Forms.renderAddVehicle(params));
+    Router.register("detail",      (params) => VehicleDetail.render(params));
 
     // Start on vehicles page
     Router.navigate("vehicles");

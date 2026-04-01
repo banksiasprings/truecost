@@ -1,27 +1,23 @@
 // TRUE COST — ui/vehicle-card.js
 // Renders the vehicle list and individual vehicle cards.
-
 const VehicleCard = {
   async renderList() {
     const vehicles = await getAllVehicles();
     const list = document.getElementById('vehicle-list');
     const empty = document.getElementById('vehicles-empty');
     if (!list) return;
-
     if (vehicles.length === 0) {
       list.innerHTML = '';
       empty?.classList.remove('hidden');
       return;
     }
     empty?.classList.add('hidden');
-
     const settings = App.settings || await getAllSettings();
     const scenario = {
       years: settings.years || 5,
       kmPerYear: settings.kmPerYear || 15000,
       opportunityCostRate: settings.opportunityCostRate || 4.5,
     };
-
     list.innerHTML = vehicles.map(v => {
       const costs = calculateCosts(v, scenario);
       return VehicleCard.cardHTML(v, costs);
@@ -39,10 +35,10 @@ const VehicleCard = {
       });
     });
 
-    // Wire card tap to edit
+    // Wire card tap → detail view
     list.querySelectorAll('.vehicle-card').forEach(card => {
       card.addEventListener('click', () => {
-        Router.navigate('add-vehicle', { id: card.dataset.id, mode: 'edit' });
+        Router.navigate('detail', { id: card.dataset.id });
       });
     });
   },
@@ -54,7 +50,6 @@ const VehicleCard = {
     const totalStr = fmtAUD(costs.summary.totalOwnershipCost);
     const perYrStr = fmtAUD(costs.summary.costPerYear);
     const perKmStr = fmtPerKm(costs.summary.costPerKm);
-
     return `
       <div class="card vehicle-card" data-id="${v.id}" style="cursor:pointer">
         <div class="flex-between mb-4">
@@ -70,7 +65,6 @@ const VehicleCard = {
             </svg>
           </button>
         </div>
-
         <div class="grid-3">
           <div class="cost-chip">
             <div class="cost-chip-value" style="font-size:var(--font-size-md)">${totalStr}</div>
@@ -85,10 +79,12 @@ const VehicleCard = {
             <div class="cost-chip-label">Per km</div>
           </div>
         </div>
-
         <div style="margin-top:var(--space-4)">
           ${VehicleCard.miniBreakdown(costs)}
         </div>
+        <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-top:var(--space-3);text-align:right">
+          Tap for breakdown →
+        </p>
       </div>`;
   },
 
@@ -102,7 +98,6 @@ const VehicleCard = {
       ['Tyres', costs.total.tyres],
       ['Lost capital', costs.total.lostCapital],
     ].filter(([, v]) => v > 0);
-
     return rows.map(([label, value]) => `
       <div class="cost-row">
         <span class="cost-label">${label}</span>
