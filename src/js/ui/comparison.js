@@ -106,11 +106,6 @@ const Comparison = {
     var html = '';
 
     // Vehicle header cards
-    html += '<div class="compare-grid"        });
-
-    var html = '';
-
-    // Vehicle header cards
     html += '<div class="compare-grid" data-count="' + count + '">';
     subset.forEach(function(r) {
       var isWinner = r.costs.summary.totalOwnershipCost === minCost;
