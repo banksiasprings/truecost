@@ -21,6 +21,14 @@ var VehicleImport = (function () {
       cond:  p.get('cond')  || 'used',
       odo:   p.get('odo')   ? parseInt(p.get('odo'), 10)    : null,
       fc:    p.get('fc')    ? parseFloat(p.get('fc'))       : null,
+      battery: p.get('battery') ? parseFloat(p.get('battery')) : null,
+      range:   p.get('range')   ? parseInt(p.get('range'), 10) : null,
+      engine:  p.get('engine')  || '',
+      drive:   p.get('drive')   || '',
+      ancap:   p.get('ancap')   ? parseInt(p.get('ancap'), 10) : null,
+      colour:  p.get('colour')  || '',
+      seats:   p.get('seats')   ? parseInt(p.get('seats'), 10) : null,
+      doors:   p.get('doors')   ? parseInt(p.get('doors'), 10) : null,
     };
   }
 
@@ -58,6 +66,22 @@ var VehicleImport = (function () {
 
     if (/\bautomatic\b/i.test(text)) d.trans = 'Automatic';
     else if (/\bmanual\b/i.test(text)) d.trans = 'Manual';
+    var bat = text.match(/([\d.]+)\\s*kWh\\R/k);
+    if (bat) d.battery = parseFloat(bat[1]);
+    var rng = text.match(/[Rr]ange[^0-9]{0,15}([\d,]+)\\s*km/i) || text.match(/([\d,]+)\\s*km\\s*(?:WLTP|NEDC|range)/i);
+    if (rng) d.range = parseInt(rng[1].replace(/,/g, ''), 10);
+    var eng = text.match(/(\\d\\.\\d)\\s*[Ll](?:itre|iter)?\\b/i);
+    if (eng) d.engine = parseFloat(eng[1]);
+    var drv = text.match(/\\b(AWD|4WD|FWD|RWD|4x4)\\b/i);
+    if (drv) d.drive = drv[1].toUpperCase();
+    var anc = text.match("/(\\d)\\s*[Ss]tar \\ANCAP/i);
+    if (anc) d.ancap = parseInt(anc[1], 10);
+    var col = text.match(/\\b(black|white|silver|grey|gray|red|blue|green|yellow|brown|beige|gold)\\b/i);
+    if (col) d.colour = col[1];
+    var seats = text.match(/\\b(\\d)\\s*(?:seat|seater|seats)\\b/i);
+    if (seats) d.seats = parseInt(seats[1], 10);
+    var doors = text.match("/\\b(\\d)\\s*(?:door|doors)\\b/i");
+    if (doors) d.doors = parseInt(doors[1], 10);
 
     return (d.make || d.price || d.odo) ? d : null;
   }
@@ -72,6 +96,14 @@ var VehicleImport = (function () {
     if (data.odo)   vehicle.purchaseOdometer = data.odo;
     if (data.fc)    vehicle.fuelConsumption = data.fc;
     if (data.name)  vehicle.nickname = data.name;
+    if (data.battery) vehicle.evBatteryKwh = data.battery;
+    if (data.range)   vehicle.evRangeKm = data.range;
+    if (data.engine)  vehicle.engineSize = data.engine;
+    if (data.drive)   vehicle.driveType = data.drive;
+    if (data.ancap)   vehicle.ancap = data.ancap;
+    if (data.colour)  vehicle.colour = data.colour;
+    if (data.seats)   vehicle.seats = data.seats;
+    if (data.doors)   vehicle.doors = data.doors;
     return vehicle;
   }
 
@@ -189,7 +221,7 @@ var VehicleImport = (function () {
     '</div>';
   }
     function _bookmarkletCode() {
-    return 'javascript:(function(){var d=null;[].forEach.call(document.querySelectorAll(\'script[type="application/ld+json"]\'),function(s){try{var p=JSON.parse(s.textContent);if(p[\'@type\']&&[].concat(p[\'@type\']).indexOf(\'Vehicle\')>-1)d=p;}catch(e){}});if(!d){alert(\'Please open a Carsales car listing first, then tap Add to TrueCost.\');return;}var t=document.body.innerText;var km=t.match(/Odometer[\\s\\S]{0,15}?([\\d,]+)\\s*km/i);var fc=t.match(/([\\d.]+)\\s*L\\/100km/i);var q=[];function a(k,v){if(v)q.push(encodeURIComponent(k)+\'=\'+encodeURIComponent(v));}a(\'import\',1);a(\'src\',\'carsales\');a(\'url\',location.href);a(\'name\',d.name);a(\'make\',d.brand&&d.brand.name);a(\'model\',d.model);a(\'year\',d.vehicleModelDate);a(\'price\',d.offers&&d.offers.price);a(\'fuel\',(d.fuelType||"").toLowerCase());a(\'trans\',d.vehicleTransmission);a(\'body\',d.bodyType);a(\'cond\',d.itemCondition&&d.itemCondition.indexOf(\'Used\')>-1?\'used\':\'new\');a(\'odo\',km?km[1].replace(/,/g,""):"");a(\'fc\',fc?fc[1]:"");window.open(\'https://banksiasprings.github.io/truecost/?\'+q.join(\'&\'),\'truecost\',\'width=430,height=850,left=900,top=50,resizable=yes,scrollbars=yes\');})();';
+    return 'javascript:(function(){var d=null;[].forEach.call(document.querySelectorAll(\'script[type="application/ld+json"]\'),function(s){try{var p=JSON.parse(s.textContent);if(p[\'@type\']&&[].concat(p[\'@type\']).indexOf(\'Vehicle\')>-1)d=p;}catch(e){}});if(!d){alert(\'Please open a Carsales car listing first, then tap Add to TrueCost.\');return;}var t=document.body.innerText;var km=t.match(/Odometer[\\s\\S]{0,15}?([\\d,]+)\\s*km/i);var fc=t.match(/([\\d.]+)\\s*L\\/100km/i);var q=[];function a(k,v){if(v)q.push(encodeURIComponent(k)+\'=\'+encodeURIComponent(v));}a(\'import\',1);a(\'src\',\'carsales\');a(\'url\',location.href);a(\'name\',d.name);a(\'make\',d.brand&&d.brand.name);a(\'model\',d.model);a(\'year\',d.vehicleModelDate);a(\'price\',d.offers&&d.offers.price);a(\'fuel\',(d.fuelType||"").toLowerCase());a(\'trans\',d.vehicleTransmission);a(\'body\',d.bodyType);a(\'cond\',d.itemCondition&&d.itemCondition.indexOf(\'Used\')>-1?\'used\':\'new\');a(\'odo\',km?km[1].replace(/,/g,""):"");a(\'fc\',fc?fc[1]:"");var bat=t.match(/([\.d]+)\s*kWh\b/i);var rng=t.match(/[Rr]ange[^0-9]{0,15}([\d,]+)\s*km/i)||t.match(/([\d,]+)\s*km\s*(?:WLTP|NEDC|range)/i);var eng=t.match(/(\d\.\d)\s*[Ll](?:itre|iter)?\b/);var drv=t.match(/\b(AWD|4WD|FWD|RWD|4x4)\b/i);var anc=t.match(/(\d)\s*[Ss]tar\s*ANCAP/i);a(\'battery\',bat?bat[1]:\'\');a(\'range\',rng?rng[1].replace(/,/g,\'\'):\'\');a(\'engine\',eng?eng[1]:(d.vehicleEngine&&d.vehicleEngine.engineDisplacement?d.vehicleEngine.engineDisplacement:\'\'));a(\'drive\',drv?drv[1].toUpperCase():(d.driveWheelConfiguration||\'\'));a(\'ancap\',anc?anc[1]:\'\');a(\'colour\',d.color||\'\');a(\'seats\',d.vehicleSeatingCapacity||\'\');a(\'doors\',d.numberOfDoors||\'\');window.open(\'https://banksiasprings.github.io/truecost/?\'+q.join(\'&\'),\'truecost\',\'width=430,height=850,left=900,top=50,resizable=yes,scrollbars=yes\');})();';
   }
 
   function _normaliseFuel(s) {
