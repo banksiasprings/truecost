@@ -1,6 +1,6 @@
 // TRUE COST — Service Worker
 // Cache version: bump this string to force all clients to refresh
-const CACHE_NAME = 'truecost-v6';
+const CACHE_NAME = 'truecost-v7';
 
 const PRECACHE_URLS = [
   '/',
@@ -25,6 +25,8 @@ const PRECACHE_URLS = [
   '/js/ui/vehicle-card.js',
   '/js/data/rates-manager.js',
   '/js/ui/comparison.js',
+  '/js/ui/import.js',
+  '/js/ui/detail.js',
   '/data/rates.json',
   '/manifest.json',
 ];
@@ -84,7 +86,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Cache-first for app shell
+  // Cache-first for app shell (with offline fallback for navigations)
   event.respondWith(
     caches.match(event.request)
       .then(cached => cached || fetch(event.request)
@@ -94,6 +96,13 @@ self.addEventListener('fetch', event => {
             caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
           }
           return response;
+        })
+        .catch(() => {
+          // Offline fallback for navigation requests
+          if (event.request.mode === 'navigate') {
+            return caches.match('/index.html');
+          }
+          return new Response('', { status: 408, statusText: 'Offline' });
         })
       )
   );
