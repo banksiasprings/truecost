@@ -44,19 +44,23 @@ const VehicleDetail = {
       });
     };
 
-    // Summary chips
+    // Summary: hero total + sub-metrics
     document.getElementById('detail-stats').innerHTML =
-      '<div class="cost-chip">' +
-        '<div class="cost-chip-value">' + fmtAUD(costs.summary.totalOwnershipCost) + '</div>' +
-        '<div class="cost-chip-label">Total ' + scenario.years + 'yr</div>' +
+      '<div style="text-align:center;padding:var(--space-3) 0 var(--space-4)">' +
+        '<div style="font-size:2.2rem;font-weight:800;letter-spacing:-0.5px;color:var(--color-text)">' + fmtAUD(costs.summary.totalOwnershipCost) + '</div>' +
+        '<div style="font-size:var(--font-size-sm);color:var(--color-text-muted);margin-top:4px">' +
+          'Total cost of ownership · ' + scenario.years + ' years' +
+        '</div>' +
       '</div>' +
-      '<div class="cost-chip">' +
-        '<div class="cost-chip-value">' + fmtAUD(costs.summary.costPerYear) + '</div>' +
-        '<div class="cost-chip-label">Per year</div>' +
-      '</div>' +
-      '<div class="cost-chip">' +
-        '<div class="cost-chip-value">' + fmtPerKm(costs.summary.costPerKm) + '</div>' +
-        '<div class="cost-chip-label">Per km</div>' +
+      '<div style="display:flex;gap:var(--space-3)">' +
+        '<div class="cost-chip" style="flex:1">' +
+          '<div class="cost-chip-value">' + fmtAUD(costs.summary.costPerYear) + '</div>' +
+          '<div class="cost-chip-label">Per year</div>' +
+        '</div>' +
+        '<div class="cost-chip" style="flex:1">' +
+          '<div class="cost-chip-value">' + fmtPerKm(costs.summary.costPerKm) + '</div>' +
+          '<div class="cost-chip-label">Per km</div>' +
+        '</div>' +
       '</div>';
 
     // Fuel/vehicle meta line

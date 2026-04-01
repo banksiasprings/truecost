@@ -56,6 +56,7 @@ const VehicleCard = {
           <div>
             <div style="font-size:var(--font-size-md);font-weight:var(--font-weight-bold)">${label}</div>
             <span class="badge ${ftBadge}">${ftLabel}</span>
+            ${v.purchasePrice ? `<div style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-top:2px">Purchased ${fmtAUD(v.purchasePrice)}</div>` : ''}
           </div>
           <button class="btn btn-ghost btn-sm btn-delete-vehicle" data-id="${v.id}"
             style="color:var(--color-error)" aria-label="Delete vehicle">
