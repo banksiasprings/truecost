@@ -119,7 +119,7 @@ const Comparison = {
 
     // Chart canvases
     html += '<div class="card" style="padding:16px">';
-    html += '<div id="chart-stacked-wrap" style="position:relative;height:280px"><canvas id="chart-stacked"></canvas></div>';
+    html += '<div id="chart-stacked-wrap" style="position:relative;height:' + (Math.max(260, activeCategories.length * 52 + 80)) + 'px"><canvas id="chart-stacked"></canvas></div>';
     html += '<div id="chart-total-wrap" class="hidden" style="position:relative;height:220px"><canvas id="chart-total"></canvas></div>';
     html += '<div id="chart-perkm-wrap" class="hidden" style="position:relative;height:220px"><canvas id="chart-perkm"></canvas></div>';
     html += '<div id="chart-yearly-wrap" class="hidden" style="position:relative;height:280px"><canvas id="chart-yearly"></canvas></div>';
@@ -243,48 +243,84 @@ const Comparison = {
 
     var labels = subset.map(function(r) { return vehicleLabel(r.vehicle); });
 
-    // Stacked bar: cost breakdown per vehicle
+    // Horizontal grouped bar: cost breakdown by category, one bar per vehicle
     destroyChart('stacked');
     var stackedCtx = document.getElementById('chart-stacked');
     if (stackedCtx) {
+      var vehicleColors = ['#E8572A', '#2D5016', '#4A90D9', '#D4A843'];
+      var catLabels = activeCategories.map(function(c) { return c.label; });
+      var vehicleDatasets = subset.map(function(r, idx) {
+        var col = vehicleColors[idx % vehicleColors.length];
+        return {
+          label: vehicleLabel(r.vehicle),
+          data: activeCategories.map(function(cat) {
+            return Math.round(r.costs.total[cat.key] || 0);
+          }),
+          backgroundColor: col + 'CC',
+          borderColor: col,
+          borderWidth: 0,
+          borderRadius: 3,
+          borderSkipped: false,
+        };
+      });
+      var breakdownLabelPlugin = {
+        id: 'breakdownLabels',
+        afterDatasetsDraw: function(chart) {
+          var ctx2 = chart.ctx;
+          chart.data.datasets.forEach(function(dataset, i) {
+            var meta = chart.getDatasetMeta(i);
+            if (meta.hidden) return;
+            meta.data.forEach(function(bar, j) {
+              var val = dataset.data[j];
+              if (!val || val <= 0) return;
+              ctx2.save();
+              ctx2.fillStyle = '#444';
+              ctx2.font = 'bold 10px system-ui, -apple-system, sans-serif';
+              ctx2.textAlign = 'left';
+              ctx2.textBaseline = 'middle';
+              var label = val >= 1000 ? '$' + (val / 1000).toFixed(1) + 'k' : '$' + val;
+              ctx2.fillText(label, bar.x + 4, bar.y);
+              ctx2.restore();
+            });
+          });
+        },
+      };
       _charts['stacked'] = new Chart(stackedCtx, {
         type: 'bar',
-        data: {
-          labels: labels,
-          datasets: activeCategories.map(function(cat) {
-            return {
-              label: cat.label,
-              data: subset.map(function(r) { return Math.round(r.costs.total[cat.key] || 0); }),
-              backgroundColor: CHART_COLORS[cat.key],
-              borderWidth: 0,
-            };
-          }),
-        },
+        data: { labels: catLabels, datasets: vehicleDatasets },
+        plugins: [breakdownLabelPlugin],
         options: {
+          indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: true,
+              position: 'top',
+              labels: { boxWidth: 12, padding: 14, font: { size: 11 } },
+            },
             tooltip: {
               callbacks: {
                 label: function(ctx) {
-                  return ' ' + ctx.dataset.label + ': $' + ctx.parsed.y.toLocaleString('en-AU');
+                  return ' ' + ctx.dataset.label + ': $' + ctx.parsed.x.toLocaleString('en-AU');
                 },
               },
             },
           },
+          layout: { padding: { right: 60 } },
           scales: {
-            x: { stacked: true, grid: { display: false } },
-            y: {
-              stacked: true,
+            x: {
               grid: { color: 'rgba(0,0,0,0.05)' },
               ticks: { callback: function(v) { return '$' + (v / 1000).toFixed(0) + 'k'; } },
+            },
+            y: {
+              grid: { display: false },
+              ticks: { font: { size: 11 } },
             },
           },
         },
       });
     }
-
     // Horizontal bar: total cost
     destroyChart('total');
     var totalCtx = document.getElementById('chart-total');
