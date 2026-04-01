@@ -282,7 +282,7 @@
 .rate-row { display: grid; grid-template-columns: 1fr 90px 32px; align-items: center; gap: var(--space-2); }
 .rate-row label { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
 .rate-row input[type=number] { font-size: var(--font-size-sm); padding: 6px 8px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text); width: 100%; text-align: right; }
-.rate-row input[type=number].overridden { border-left: 3px solid var(--color-accent); padding-left: 5px; }
+.rate-row input[type=number].overridden { /* previously saved — no extra border, green flash + toast already confirmed it */ }
 .rate-row input[type=number].editing { border-color: #E8572A; background: #fff5f0; transition: none; }
 .rate-row input[type=number].saved   { border-color: #2D5016; background: #f0fff4; transition: none; }
 .btn-rate-reset { background: none; border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 4px 6px; font-size: 14px; cursor: pointer; color: var(--color-text-muted); line-height: 1; }
