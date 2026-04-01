@@ -70,19 +70,6 @@ const Forms = {
       this.renderImportEntry();
     });
   },
-) {
-    this._step = 0;
-    this._editId = params.id || null;
-    if (this._editId) {
-      this._vehicle = await getVehicle(this._editId) || createVehicle();
-      document.getElementById('add-vehicle-title').textContent = 'Edit Vehicle';
-    } else {
-      const settings = App.settings || Defaults.scenario;
-      this._vehicle = createVehicle({ state: settings.state });
-      document.getElementById('add-vehicle-title').textContent = 'Add Vehicle';
-    }
-    this.renderStep(0);
-  },
 
   renderStep(step) {
     this._step = step;
