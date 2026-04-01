@@ -232,6 +232,11 @@ const Comparison = {
       console.warn('Chart.js not loaded - charts unavailable');
       return;
     }
+    // Temporarily unhide all chart containers so Chart.js initializes with correct dimensions
+    ['total','perkm','yearly'].forEach(function(id) {
+      var el = document.getElementById('chart-' + id + '-wrap');
+      if (el) el.classList.remove('hidden');
+    });
     Chart.defaults.font.family = 'system-ui, -apple-system, sans-serif';
     Chart.defaults.font.size = 11;
     Chart.defaults.color = '#6B6B6B';
@@ -416,5 +421,10 @@ const Comparison = {
         },
       });
     }
+    // Re-hide non-active chart containers
+    ['total','perkm','yearly'].forEach(function(id) {
+      var el = document.getElementById('chart-' + id + '-wrap');
+      if (el) el.classList.add('hidden');
+    });
   },
 };
