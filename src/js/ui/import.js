@@ -201,7 +201,8 @@ var VehicleImport = (function () {
       '    ← Back',
       '  </button>',
       '</div>',
-    ].join(chr(10));
+    ].join('
+');
   }
   function renderBookmarkletScreen() {
     var code = _bookmarkletCode();
