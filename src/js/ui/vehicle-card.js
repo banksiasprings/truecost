@@ -66,17 +66,17 @@ const VehicleCard = {
             </svg>
           </button>
         </div>
-        <div class="grid-3">
-          <div class="cost-chip">
-            <div class="cost-chip-value" style="font-size:var(--font-size-md)">${totalStr}</div>
-            <div class="cost-chip-label">Total ${App.settings?.years || 5}yr</div>
-          </div>
-          <div class="cost-chip">
-            <div class="cost-chip-value" style="font-size:var(--font-size-md)">${perYrStr}</div>
+        <div style="text-align:center;margin-bottom:10px">
+          <div style="font-size:1.6rem;font-weight:800;color:var(--color-text);letter-spacing:-0.5px;line-height:1.1">${totalStr}</div>
+          <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-top:2px">Total ${App.settings?.years || 5}-year cost</div>
+        </div>
+        <div style="display:flex;gap:var(--space-3)">
+          <div class="cost-chip" style="flex:1">
+            <div class="cost-chip-value">${perYrStr}</div>
             <div class="cost-chip-label">Per year</div>
           </div>
-          <div class="cost-chip">
-            <div class="cost-chip-value" style="font-size:var(--font-size-md)">${perKmStr}</div>
+          <div class="cost-chip" style="flex:1">
+            <div class="cost-chip-value">${perKmStr}</div>
             <div class="cost-chip-label">Per km</div>
           </div>
         </div>
