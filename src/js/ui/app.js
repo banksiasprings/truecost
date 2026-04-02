@@ -34,6 +34,7 @@ const App = {
     document.getElementById("btn-back-to-vehicles")?.addEventListener("click", () => {
       // If mid-form (steps 1+), go to previous step; only go to vehicles list from step 0
       if (typeof Forms !== 'undefined' && Forms._step > 0) {
+        Forms.collectStep(Forms._step);
         Forms.renderStep(Forms._step - 1);
       } else {
         Router.navigate('vehicles');
