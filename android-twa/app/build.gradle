@@ -24,8 +24,8 @@ def twaManifest = [
     applicationId: 'au.com.banksiasprings.truecost',
     hostName: 'banksiasprings.github.io', // The domain being opened in the TWA.
     launchUrl: '/truecost/', // The start path for the TWA. Must be relative to the domain.
-    name: 'TRUE COST', // The application name.
-    launcherName: 'TrueCost', // The name shown on the Android Launcher.
+    name: 'TRUE CAR COSTS', // The application name.
+    launcherName: 'True Car Costs', // The name shown on the Android Launcher.
     themeColor: '#2D5016', // The color used for the status bar.
     themeColorDark: '#000000', // The color used for the dark status bar.
     navigationColor: '#2D5016', // The color used for the navigation bar.
