@@ -165,7 +165,7 @@ var VehicleImport = (function () {
       '<h3 style="margin-bottom:var(--space-3)">Paste Listing Text</h3>' +
       '<p style="color:var(--color-text-muted);margin-bottom:var(--space-4);font-size:var(--font-size-sm)">' +
         'On Carsales (or any car site), select all the text on the listing page, copy it, ' +
-        'then paste it below. True Car Costs will extract the details automatically.' +
+        'then paste it below. TrueCost will extract the details automatically.' +
       '</p>' +
       '<textarea id="import-paste-text" rows="10" placeholder="Paste listing text here\u2026"' +
         ' style="width:100%;font-size:var(--font-size-sm);padding:var(--space-3);' +

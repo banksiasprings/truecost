@@ -1,8 +1,8 @@
 {
   "packageId": "au.com.banksiasprings.truecost",
   "host": "banksiasprings.github.io",
-  "name": "TRUE CAR COSTS",
-  "launcherName": "True Car Costs",
+  "name": "TRUE COST",
+  "launcherName": "TrueCost",
   "display": "standalone",
   "themeColor": "#2D5016",
   "navigationColor": "#2D5016",
@@ -18,7 +18,7 @@
     "path": "android.keystore",
     "alias": "android"
   },
-  "signingKeyFullName": "True Car Costs App",
+  "signingKeyFullName": "TrueCost App",
   "signingKeyOrganization": "Banksia Springs",
   "signingKeyOrganizationalUnit": "Development",
   "signingKeyCountry": "AU",

@@ -1,6 +1,6 @@
 {
-  "name": "TRUE CAR COSTS",
-  "short_name": "True Car Costs",
+  "name": "TRUE COST",
+  "short_name": "TrueCost",
   "description": "Know what your car actually costs",
   "start_url": "/truecost/",
   "display": "standalone",
