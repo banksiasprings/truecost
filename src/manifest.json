@@ -5,7 +5,7 @@
   "start_url": "/truecost/",
   "display": "standalone",
   "background_color": "#FAFAF8",
-  "theme_color": "#2D5016",
+  "theme_color": "#08101E",
   "orientation": "portrait",
   "icons": [
     {

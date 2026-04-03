@@ -16,15 +16,15 @@
   --color-hero-bg2:       #0D1E3A;
 
   /* Nav */
-  --color-nav-bg:         #0A4D2A;
+  --color-nav-bg:         #08101E;
   --color-nav-active:     #38BFFF;
-  --color-nav-inactive:   rgba(255,255,255,0.55);
+  --color-nav-inactive:   rgba(255,255,255,0.50);
 
   /* Backgrounds */
   --color-bg:             #F2F4F8;
   --color-bg-card:        #FFFFFF;
   --color-bg-input:       #EEF1F7;
-  --color-bg-nav:         #0A4D2A;
+  --color-bg-nav:         #08101E;
 
   /* Text */
   --color-text:           #0F1828;
