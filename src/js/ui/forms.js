@@ -56,6 +56,16 @@ const Forms = {
       });
     };
 
+    document.getElementById('import-db-btn')?.addEventListener('click', () => {
+      container.innerHTML = VehicleImport.renderDatabaseScreen();
+      VehicleImport.bindDatabaseEvents(container, (preset) => {
+        VehicleImport.applyPreset(preset, this._vehicle);
+        App.toast(preset.year + ' ' + preset.make + ' ' + preset.model + ' loaded', 'success');
+        this.renderStep(0);
+      }, () => {
+        this.renderImportEntry();
+      });
+    });
     document.getElementById('import-manual-btn')?.addEventListener('click', () => {
       this.renderStep(0);
     });

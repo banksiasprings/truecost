@@ -179,20 +179,160 @@ var VehicleImport = (function () {
         '<div id="import-clip-url" style="font-size:11px;color:var(--color-text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:var(--space-3)"></div>' +
         '<button class="btn btn-primary btn-full" id="import-clip-btn" style="font-size:var(--font-size-sm)">Import this listing ↗</button>' +
       '</div>' +
-      '<h3 style="margin-bottom:var(--space-4)">Import a Vehicle Listing</h3>' +
+      '<h3 style="margin-bottom:var(--space-4)">Add a Vehicle</h3>' +
       '<p style="color:var(--color-text-muted);margin-bottom:var(--space-5)">' +
-        'Choose how you want to bring in car details from a listing site.' +
+        'Pick from the database, import a listing, or enter details manually.' +
       '</p>' +
-      '<button class="btn btn-primary btn-full" id="import-paste-btn" style="margin-bottom:var(--space-3)">' +
+      '<button class="btn btn-primary btn-full" id="import-db-btn" style="margin-bottom:var(--space-3)">' +
+        '&#128269; Choose from Database' +
+      '</button>' +
+      '<button class="btn btn-secondary btn-full" id="import-paste-btn" style="margin-bottom:var(--space-3)">' +
         '&#128203; Paste Listing Text' +
       '</button>' +
       '<button class="btn btn-secondary btn-full" id="import-url-btn" style="margin-bottom:var(--space-3)">' +
         '&#128279; Paste a Carsales URL' +
       '</button>' +
-      '<button class="btn btn-secondary btn-full" id="import-manual-btn">' +
+      '<button class="btn btn-ghost btn-full" id="import-manual-btn">' +
         '&#9999;&#65039; Enter Details Manually' +
       '</button>' +
     '</div>';
+  }
+
+  function renderDatabaseScreen() {
+    var categories = [];
+    var seen = {};
+    var presets = (window.VehiclePresets && window.VehiclePresets.all) || [];
+    presets.forEach(function(p) {
+      if (!seen[p.category]) { seen[p.category] = true; categories.push(p.category); }
+    });
+
+    var catTabs = '<div id="import-db-cats" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:var(--space-4)">' +
+      '<button class="db-cat-btn active" data-cat="" style="padding:4px 10px;border-radius:20px;border:1px solid var(--color-border);background:var(--color-primary);color:#fff;font-size:12px;cursor:pointer">All</button>' +
+      categories.map(function(c) {
+        return '<button class="db-cat-btn" data-cat="' + c + '" style="padding:4px 10px;border-radius:20px;border:1px solid var(--color-border);background:var(--color-surface);font-size:12px;cursor:pointer">' + c + '</button>';
+      }).join('') +
+    '</div>';
+
+    return '<div class="import-db">' +
+      '<h3 style="margin-bottom:var(--space-3)">Choose from Database</h3>' +
+      '<input type="search" id="import-db-search" placeholder="Search make, model or type\u2026"' +
+        ' style="width:100%;padding:var(--space-3);border:1px solid var(--color-border);border-radius:var(--radius-md);' +
+        'font-size:var(--font-size-sm);box-sizing:border-box;font-family:inherit;margin-bottom:var(--space-3)">' +
+      catTabs +
+      '<div id="import-db-results" style="max-height:55vh;overflow-y:auto;border:1px solid var(--color-border);border-radius:var(--radius-md)">' +
+      '</div>' +
+      '<button class="btn btn-ghost btn-full" id="import-db-back-btn" style="margin-top:var(--space-3)">' +
+        '\u2190 Back' +
+      '</button>' +
+    '</div>';
+  }
+
+  function bindDatabaseEvents(container, onSelect, onBack) {
+    var presets = (window.VehiclePresets && window.VehiclePresets.all) || [];
+    var currentCat = '';
+    var currentQuery = '';
+
+    function fuelIcon(ft) {
+      return { electric:'⚡', hybrid:'🌿', phev:'🔌', diesel:'⛽', petrol:'⛽', lpg:'⛽' }[ft] || '';
+    }
+
+    function renderResults() {
+      var filtered = presets.filter(function(p) {
+        var catOk = !currentCat || p.category === currentCat;
+        if (!catOk) return false;
+        if (!currentQuery) return true;
+        var hay = [p.make, p.model, p.variant, p.category, p.fuelType].join(' ').toLowerCase();
+        return currentQuery.trim().toLowerCase().split(/\s+/).every(function(t) { return hay.indexOf(t) > -1; });
+      });
+
+      var resultsEl = document.getElementById('import-db-results');
+      if (!resultsEl) return;
+      if (!filtered.length) {
+        resultsEl.innerHTML = '<div style="padding:var(--space-5);text-align:center;color:var(--color-text-muted);font-size:var(--font-size-sm)">No vehicles found</div>';
+        return;
+      }
+
+      // Group by category
+      var groups = {};
+      var order = [];
+      filtered.forEach(function(p) {
+        if (!groups[p.category]) { groups[p.category] = []; order.push(p.category); }
+        groups[p.category].push(p);
+      });
+
+      var html = '';
+      order.forEach(function(cat) {
+        html += '<div style="padding:6px 12px;background:var(--color-bg-subtle,#f5f5f7);font-size:11px;font-weight:700;letter-spacing:0.05em;color:var(--color-text-muted);text-transform:uppercase;border-bottom:1px solid var(--color-border)">' + cat + '</div>';
+        groups[cat].forEach(function(p, i) {
+          var isLast = i === groups[cat].length - 1;
+          var price = p.purchasePrice ? ' · $' + p.purchasePrice.toLocaleString('en-AU') : '';
+          var fc = p.fuelType === 'electric'
+            ? (p.evConsumptionKwh ? p.evConsumptionKwh + ' kWh/100km' : '')
+            : (p.fuelConsumption ? p.fuelConsumption + 'L/100km' : '');
+          html += '<button class="import-db-item" data-idx="' + presets.indexOf(p) + '"' +
+            ' style="display:block;width:100%;text-align:left;padding:10px 14px;background:none;border:none;' +
+            'border-bottom:' + (isLast ? 'none' : '1px solid var(--color-border)') + ';cursor:pointer;' +
+            'font-family:inherit;transition:background 0.15s">' +
+            '<div style="font-size:var(--font-size-sm);font-weight:600">' + fuelIcon(p.fuelType) + ' ' + p.year + ' ' + p.make + ' ' + p.model + '</div>' +
+            '<div style="font-size:11px;color:var(--color-text-muted);margin-top:2px">' + (p.variant || '') + price + (fc ? ' · ' + fc : '') + '</div>' +
+          '</button>';
+        });
+      });
+      resultsEl.innerHTML = html;
+
+      // Bind hover effect
+      resultsEl.querySelectorAll('.import-db-item').forEach(function(btn) {
+        btn.addEventListener('mouseenter', function() { this.style.background = 'var(--color-bg-subtle,#f5f5f7)'; });
+        btn.addEventListener('mouseleave', function() { this.style.background = ''; });
+        btn.addEventListener('click', function() {
+          var idx = parseInt(this.getAttribute('data-idx'), 10);
+          if (!isNaN(idx) && presets[idx]) onSelect(presets[idx]);
+        });
+      });
+    }
+
+    // Category tab clicks
+    container.querySelectorAll('.db-cat-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        currentCat = this.getAttribute('data-cat') || '';
+        container.querySelectorAll('.db-cat-btn').forEach(function(b) {
+          var active = b.getAttribute('data-cat') === currentCat || (currentCat === '' && b.getAttribute('data-cat') === '');
+          b.style.background = active ? 'var(--color-primary)' : 'var(--color-surface)';
+          b.style.color = active ? '#fff' : '';
+          b.style.borderColor = active ? 'var(--color-primary)' : 'var(--color-border)';
+        });
+        renderResults();
+      });
+    });
+
+    var searchEl = document.getElementById('import-db-search');
+    if (searchEl) {
+      searchEl.addEventListener('input', function() {
+        currentQuery = this.value;
+        renderResults();
+      });
+      searchEl.focus();
+    }
+
+    document.getElementById('import-db-back-btn')?.addEventListener('click', onBack);
+
+    renderResults();
+  }
+
+  function applyPreset(preset, vehicle) {
+    if (!preset || !vehicle) return vehicle;
+    // Copy all preset fields directly onto the vehicle (presets use the same schema)
+    var fields = ['make','model','variant','year','fuelType','fuelConsumption',
+      'purchasePrice','resaleValue5yr','serviceCostPerService','serviceIntervalKm',
+      'serviceIntervalMonths','tyreCostPerSet','tyreLifeKm','insuranceAnnual',
+      'evBatteryKwh','evRangeKm','evConsumptionKwh','phevElectricRangeKm','phevElectricPct'];
+    fields.forEach(function(f) {
+      if (preset[f] !== undefined) vehicle[f] = preset[f];
+    });
+    vehicle.isNew = true;
+    vehicle.condition = 'new';
+    vehicle.dataSource = 'preset';
+    return vehicle;
   }
 
   function renderPasteScreen() {
@@ -274,7 +414,10 @@ var VehicleImport = (function () {
     fromSharedUrl:           fromSharedUrl,
     fromPastedText:          fromPastedText,
     applyToVehicle:          applyToVehicle,
+    applyPreset:             applyPreset,
     renderEntryScreen:       renderEntryScreen,
+    renderDatabaseScreen:    renderDatabaseScreen,
+    bindDatabaseEvents:      bindDatabaseEvents,
     fromProxyUrl:            fromProxyUrl,
     renderUrlScreen:         renderUrlScreen,
     renderPasteScreen:       renderPasteScreen,
