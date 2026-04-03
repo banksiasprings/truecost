@@ -1,23 +1,24 @@
 // TRUE COST - calc/registration.js
 // Annual registration cost calculation based on state and vehicle parameters.
 function calcRegistration(vehicle, scenario) {
-  // Use vehicle-specific override value first
-  let annualCost = vehicle.registrationAnnual;
+  let annualCost = 0;
 
-  if (!annualCost && vehicle.state) {
-    // Try to calculate from cylinders/weight using state-specific logic
+  // Always prefer state-based calculation — gives accurate cylinder/weight rates
+  // and ensures existing vehicles with stored defaults get recalculated properly.
+  if (vehicle.state) {
     const calculated = calculateStateRegistration(vehicle.state, vehicle.cylinders, vehicle.tarenWeightKg);
-    if (calculated) {
+    if (calculated && calculated.total > 0) {
       annualCost = calculated.total;
-    } else {
-      // Fall back to live rates if available
-      if (window.LiveRates && window.LiveRates.registration && window.LiveRates.registration[vehicle.state]) {
-        annualCost = window.LiveRates.registration[vehicle.state].total;
-      } else {
-        // Last resort: use defaults
-        annualCost = Defaults.vehicle.registrationAnnual;
-      }
     }
+  }
+
+  // If no state calc available, fall back to stored value / live rates / defaults
+  if (!annualCost) {
+    annualCost = vehicle.registrationAnnual
+      || (window.LiveRates && window.LiveRates.registration && vehicle.state
+          && window.LiveRates.registration[vehicle.state]
+          && window.LiveRates.registration[vehicle.state].total)
+      || Defaults.vehicle.registrationAnnual;
   }
 
   annualCost = annualCost || Defaults.vehicle.registrationAnnual;

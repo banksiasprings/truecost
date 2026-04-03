@@ -38,15 +38,26 @@ function saveVehicle(vehicle) {
 function getVehicle(id) {
   return openDB().then(db => new Promise((resolve, reject) => {
     const req = db.transaction(STORE_VEHICLES, "readonly").objectStore(STORE_VEHICLES).get(id);
-    req.onsuccess = () => resolve(req.result || null);
+    req.onsuccess = () => resolve(req.result ? normalizeVehicle(req.result) : null);
     req.onerror = (e) => reject(e.target.error);
   }));
+}
+
+// Migrate any vehicle stored in a legacy/partial format to the full schema.
+// Handles: old `price` field name → `purchasePrice`, missing fields → defaults.
+function normalizeVehicle(raw) {
+  if (!raw) return raw;
+  const v = { ...raw };
+  // Legacy field rename
+  if (!v.purchasePrice && v.price) v.purchasePrice = v.price;
+  // Fill any missing fields with typed defaults via createVehicle
+  return createVehicle(v);
 }
 
 function getAllVehicles() {
   return openDB().then(db => new Promise((resolve, reject) => {
     const req = db.transaction(STORE_VEHICLES, "readonly").objectStore(STORE_VEHICLES).getAll();
-    req.onsuccess = () => resolve(req.result || []);
+    req.onsuccess = () => resolve((req.result || []).map(normalizeVehicle));
     req.onerror = (e) => reject(e.target.error);
   }));
 }
