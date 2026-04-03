@@ -223,29 +223,40 @@ const Comparison = {
       var pct2 = t2 > 0 ? Math.round((v2 / t2) * 100) : 0;
       var col  = CAT_COLORS[cat.key] || '#1877F2';
 
-      // Row: label left-aligned, then two bars with %
-      html += '<div style="margin-bottom:11px">';
+      // Format dollar amounts compactly: $1.2k or $850
+      function fmtK(v) {
+        if (v >= 1000) return '$' + (v / 1000).toFixed(1) + 'k';
+        return '$' + Math.round(v);
+      }
+
+      html += '<div style="margin-bottom:13px">';
 
       // Category label
-      html += '<div style="font-size:11px;color:var(--color-text-muted);font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:5px">';
+      html += '<div style="font-size:11px;color:var(--color-text-muted);font-weight:600;margin-bottom:5px;display:flex;align-items:center;gap:5px">';
       html += '<div style="width:8px;height:8px;border-radius:2px;background:' + col + ';flex-shrink:0"></div>';
       html += cat.label;
       html += '</div>';
 
-      // Vehicle 1 bar
-      html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">';
-      html += '<div style="flex:1;height:10px;background:var(--color-bg-input);border-radius:5px;overflow:hidden">';
+      // Vehicle 1 bar + dollar + %
+      html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">';
+      html += '<div style="flex:1;height:9px;background:var(--color-bg-input);border-radius:5px;overflow:hidden">';
       html += '<div style="height:100%;width:' + pct1 + '%;background:' + col + ';border-radius:5px;transition:width 0.5s ease"></div>';
       html += '</div>';
-      html += '<div style="font-size:11px;font-weight:700;color:#1877F2;width:30px;text-align:right">' + pct1 + '%</div>';
+      html += '<div style="text-align:right;min-width:80px">';
+      html += '<span style="font-size:12px;font-weight:700;color:#1877F2">' + fmtK(v1) + '</span>';
+      html += '<span style="font-size:10px;color:var(--color-text-muted);margin-left:3px">' + pct1 + '%</span>';
+      html += '</div>';
       html += '</div>';
 
-      // Vehicle 2 bar
+      // Vehicle 2 bar + dollar + %
       html += '<div style="display:flex;align-items:center;gap:6px">';
-      html += '<div style="flex:1;height:10px;background:var(--color-bg-input);border-radius:5px;overflow:hidden">';
-      html += '<div style="height:100%;width:' + pct2 + '%;background:' + col + ';border-radius:5px;opacity:0.5;transition:width 0.5s ease"></div>';
+      html += '<div style="flex:1;height:9px;background:var(--color-bg-input);border-radius:5px;overflow:hidden">';
+      html += '<div style="height:100%;width:' + pct2 + '%;background:' + col + ';border-radius:5px;opacity:0.55;transition:width 0.5s ease"></div>';
       html += '</div>';
-      html += '<div style="font-size:11px;font-weight:700;color:#FF6B35;width:30px;text-align:right">' + pct2 + '%</div>';
+      html += '<div style="text-align:right;min-width:80px">';
+      html += '<span style="font-size:12px;font-weight:700;color:#FF6B35">' + fmtK(v2) + '</span>';
+      html += '<span style="font-size:10px;color:var(--color-text-muted);margin-left:3px">' + pct2 + '%</span>';
+      html += '</div>';
       html += '</div>';
 
       html += '</div>';
@@ -274,12 +285,16 @@ const Comparison = {
         var tot  = r.costs.summary.totalOwnershipCost;
         var pct  = tot > 0 ? Math.round((val / tot) * 100) : 0;
         var rcol = COLS[idx % COLS.length];
+        var fmtK = function(v) { return v >= 1000 ? '$' + (v/1000).toFixed(1) + 'k' : '$' + Math.round(v); };
         html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">';
         html += '<div style="font-size:10px;color:var(--color-text-muted);width:12px;font-weight:700">' + (idx + 1) + '</div>';
         html += '<div style="flex:1;height:9px;background:var(--color-bg-input);border-radius:5px;overflow:hidden">';
         html += '<div style="height:100%;width:' + pct + '%;background:' + rcol + ';border-radius:5px"></div>';
         html += '</div>';
-        html += '<div style="font-size:10px;font-weight:700;color:' + rcol + ';width:28px;text-align:right">' + pct + '%</div>';
+        html += '<div style="text-align:right;min-width:72px">';
+        html += '<span style="font-size:11px;font-weight:700;color:' + rcol + '">' + fmtK(val) + '</span>';
+        html += '<span style="font-size:10px;color:var(--color-text-muted);margin-left:3px">' + pct + '%</span>';
+        html += '</div>';
         html += '</div>';
       });
 
