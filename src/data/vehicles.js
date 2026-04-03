@@ -411,11 +411,12 @@ const VEHICLE_PRESETS = [
 
 // Simple search: returns presets matching query across make/model/variant/category
 function searchVehiclePresets(query) {
+  const complete = VEHICLE_PRESETS.filter(v => v.year && v.purchasePrice);
   if (!query || query.trim().length < 2) return [];
   const q = query.trim().toLowerCase();
   const terms = q.split(/\s+/);
 
-  return VEHICLE_PRESETS.filter(p => {
+  return complete.filter(p => {
     const haystack = [p.make, p.model, p.variant, p.category, p.fuelType]
       .join(' ').toLowerCase();
     return terms.every(t => haystack.includes(t));
@@ -423,6 +424,6 @@ function searchVehiclePresets(query) {
 }
 
 window.VehiclePresets = {
-  all: VEHICLE_PRESETS,
+  all: VEHICLE_PRESETS.filter(v => v.year && v.purchasePrice),
   search: searchVehiclePresets,
 };

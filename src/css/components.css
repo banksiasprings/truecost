@@ -189,7 +189,7 @@
 }
 .select-wrapper { position: relative; }
 .select-wrapper::after {
-  content: "BC";
+  content: "▾";
   position: absolute;
   right: var(--space-4);
   top: 50%;

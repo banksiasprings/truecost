@@ -151,7 +151,7 @@ const VehicleDetail = {
     }).join('') +
 
     // ── Stamp duty EV concession note ──
-    + (((costs.meta && costs.meta.stampDuty && costs.meta.stampDuty.hasEvConcession) && costs.meta.stampDuty.savedVsStandard > 0)
+    (((costs.meta && costs.meta.stampDuty && costs.meta.stampDuty.hasEvConcession) && costs.meta.stampDuty.savedVsStandard > 0)
       ? '<div style="margin-top:var(--space-3);padding:var(--space-3) var(--space-4);' +
           'background:rgba(52,199,89,0.07);border:1px solid rgba(52,199,89,0.28);' +
           'border-radius:var(--radius-md);font-size:11px;color:var(--color-text-muted);line-height:1.5">' +
@@ -161,7 +161,7 @@ const VehicleDetail = {
         '</div>'
       : '') +
     // ── Novated lease tax saving breakdown ──
-    + ((costs.meta && costs.meta.novated)
+    ((costs.meta && costs.meta.novated)
       ? '<div style="margin-top:var(--space-3);padding:var(--space-3) var(--space-4);' +
           'background:rgba(74,144,217,0.07);border:1px solid rgba(74,144,217,0.28);' +
           'border-radius:var(--radius-md);font-size:11px;color:var(--color-text-muted);line-height:1.5">' +
@@ -184,7 +184,7 @@ const VehicleDetail = {
         '</div>'
       : '') +
     // ── Chattel mortgage GST credit note ──
-    + ((costs.meta && costs.meta.gstCredit > 0)
+    ((costs.meta && costs.meta.gstCredit > 0)
       ? '<div style="margin-top:var(--space-3);padding:var(--space-3) var(--space-4);' +
           'background:rgba(74,144,217,0.07);border:1px solid rgba(74,144,217,0.28);' +
           'border-radius:var(--radius-md);font-size:11px;color:var(--color-text-muted);line-height:1.5">' +
