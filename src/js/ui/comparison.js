@@ -63,21 +63,60 @@ const Comparison = {
       container.innerHTML =
         '<div class="empty-state">'
         + '<div style="margin-bottom:20px">'
-        + '<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">'
-        + '<rect width="80" height="80" rx="24" fill="#0D1E3A"/>'
-        // Car body
-        + '<path d="M14 50 L18 36 Q20 31 25 31 L55 31 Q60 31 62 36 L66 50 Q67 51 66 53 L66 57 Q66 60 63 60 L59 60 Q56 60 56 57 L56 55 L24 55 L24 57 Q24 60 21 60 L17 60 Q14 60 14 57 L14 53 Q13 51 14 50Z" fill="#1877F2"/>'
-        // Windshield
-        + '<path d="M22 46 L26 34 L54 34 L58 46Z" fill="#0D3A6E" opacity="0.7"/>'
-        // Wheels
-        + '<circle cx="24" cy="56" r="5.5" fill="#08101E" stroke="#38BFFF" stroke-width="2"/>'
-        + '<circle cx="56" cy="56" r="5.5" fill="#08101E" stroke="#38BFFF" stroke-width="2"/>'
-        + '<circle cx="24" cy="56" r="2" fill="#38BFFF"/>'
-        + '<circle cx="56" cy="56" r="2" fill="#38BFFF"/>'
-        // Dollar badge
-        + '<circle cx="61" cy="26" r="10" fill="#FF6B35" opacity="0.15"/>'
-        + '<circle cx="61" cy="26" r="7.5" stroke="#FF6B35" stroke-width="1.5" fill="none"/>'
-        + '<text x="61" y="30" text-anchor="middle" font-size="9" font-weight="800" fill="#FF6B35">$</text>'
+        + '<svg width="96" height="96" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">'
+        + '<defs>'
+        +   '<filter id="glo" x="-30%" y="-30%" width="160%" height="160%">'
+        +     '<feGaussianBlur stdDeviation="1.8" result="b"/>'
+        +     '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>'
+        +   '</filter>'
+        +   '<radialGradient id="rbg" cx="50%" cy="50%" r="55%">'
+        +     '<stop offset="0%" stop-color="#0D2540"/>'
+        +     '<stop offset="100%" stop-color="#060E1A"/>'
+        +   '</radialGradient>'
+        + '</defs>'
+        // Dark card bg
+        + '<rect width="96" height="96" rx="22" fill="url(#rbg)"/>'
+        // Outer neon ring
+        + '<circle cx="48" cy="48" r="40" fill="none" stroke="#38BFFF" stroke-width="1.5" opacity="0.9" filter="url(#glo)"/>'
+        // Inner subtle ring
+        + '<circle cx="48" cy="48" r="37" fill="none" stroke="#38BFFF" stroke-width="0.5" opacity="0.3"/>'
+
+        // Bar 1 — left, shortest (bottom y=67, height=16)
+        + '<rect x="16" y="51" width="13" height="16" rx="2" fill="#081828" stroke="#38BFFF" stroke-width="1" filter="url(#glo)"/>'
+        // Bar 2 — middle (bottom y=67, height=24)
+        + '<rect x="33" y="43" width="13" height="24" rx="2" fill="#081828" stroke="#38BFFF" stroke-width="1" filter="url(#glo)"/>'
+        // Bar 3 — right, tallest (bottom y=67, height=33)
+        + '<rect x="50" y="34" width="13" height="33" rx="2" fill="#081828" stroke="#38BFFF" stroke-width="1" filter="url(#glo)"/>'
+
+        // Car 1 on bar 1 (bar top = y=51)
+        + '<rect x="17" y="44" width="11" height="6" rx="1.5" fill="#38BFFF" filter="url(#glo)"/>'
+        + '<rect x="19" y="41" width="7" height="4" rx="1.5" fill="#38BFFF"/>'
+        + '<circle cx="19.5" cy="51" r="2" fill="#06101C" stroke="#38BFFF" stroke-width="1"/>'
+        + '<circle cx="26.5" cy="51" r="2" fill="#06101C" stroke="#38BFFF" stroke-width="1"/>'
+
+        // Car 2 on bar 2 (bar top = y=43)
+        + '<rect x="34" y="36" width="11" height="6" rx="1.5" fill="#38BFFF" filter="url(#glo)"/>'
+        + '<rect x="36" y="33" width="7" height="4" rx="1.5" fill="#38BFFF"/>'
+        + '<circle cx="36.5" cy="43" r="2" fill="#06101C" stroke="#38BFFF" stroke-width="1"/>'
+        + '<circle cx="43.5" cy="43" r="2" fill="#06101C" stroke="#38BFFF" stroke-width="1"/>'
+
+        // Car 3 on bar 3 (bar top = y=34)
+        + '<rect x="51" y="27" width="11" height="6" rx="1.5" fill="#38BFFF" filter="url(#glo)"/>'
+        + '<rect x="53" y="24" width="7" height="4" rx="1.5" fill="#38BFFF"/>'
+        + '<circle cx="53.5" cy="34" r="2" fill="#06101C" stroke="#38BFFF" stroke-width="1"/>'
+        + '<circle cx="60.5" cy="34" r="2" fill="#06101C" stroke="#38BFFF" stroke-width="1"/>'
+
+        // Dotted trend line car-roof to car-roof
+        + '<line x1="23" y1="41" x2="39" y2="33" stroke="#38BFFF" stroke-width="1.2" stroke-dasharray="2.5,2" opacity="0.85" filter="url(#glo)"/>'
+        + '<line x1="39" y1="33" x2="56" y2="24" stroke="#38BFFF" stroke-width="1.2" stroke-dasharray="2.5,2" opacity="0.85" filter="url(#glo)"/>'
+        // Arrow tip
+        + '<polyline points="53,22 58,21 57,26" stroke="#38BFFF" stroke-width="1.3" fill="none" stroke-linejoin="round" filter="url(#glo)"/>'
+
+        // Dollar sign top-right (inside ring)
+        + '<text x="74" y="24" font-size="10" font-weight="900" fill="#38BFFF" text-anchor="middle" font-family="system-ui,sans-serif" filter="url(#glo)">$</text>'
+
+        // "CAR COSTS" text at bottom
+        + '<text x="48" y="80" font-size="6.5" font-weight="700" fill="#38BFFF" text-anchor="middle" letter-spacing="2" font-family="system-ui,sans-serif" filter="url(#glo)">CAR COSTS</text>'
         + '</svg>'
         + '</div>'
         + '<h2 class="empty-state-title">Add at least 2 vehicles</h2>'
