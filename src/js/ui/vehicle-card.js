@@ -80,6 +80,7 @@ const VehicleCard = {
             <span class="badge ${ftBadge}">${ftLabel}</span>
             ${v.purchasePrice ? `<span style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-left:6px">Paid ${fmtAUD(v.purchasePrice)}</span>` : ''}
           </div>
+          ${ (() => { const _a = new Date().getFullYear() - (v.year || new Date().getFullYear()); const _o = v.purchaseOdometer || 0; return (_a >= 7 || _o >= 100000) ? '<div style="margin-top:4px"><span style="display:inline-block;padding:1px 7px;border-radius:8px;background:rgba(255,149,0,0.12);color:#CC7700;font-size:10px;font-weight:700">\u26A0 ' + (_a >= 7 ? _a + 'yr old' : Math.round(_o/1000) + 'k km') + ' \u2014 higher maintenance risk</span></div>' : ''; })() }
           <button class="btn btn-ghost btn-sm btn-delete-vehicle" data-id="${v.id}"
             style="color:var(--color-error);padding:4px;margin:-4px -4px 0 8px" aria-label="Delete">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

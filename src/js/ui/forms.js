@@ -190,7 +190,73 @@ const Forms = {
 
   stepFinance() {
     const v = this._vehicle;
-    return `<div class="card"><h2 class="card-title">Finance (optional)</h2><div class="form-group"><label style="display:flex;align-items:center;gap:var(--space-3);cursor:pointer"><input type="checkbox" id="f-financed" ${v.financed?'checked':''} style="width:20px;height:20px"><span>This vehicle is financed</span></label></div><div id="finance-fields" ${!v.financed?'style="display:none"':''} ><div class="form-group"><label class="label" for="f-loan">Loan amount</label><div class="input-prefix"><span class="prefix-label">$</span><input type="number" class="input" id="f-loan" value="${v.loanAmount || ''}" style="padding-left:32px"></div></div><div class="form-row"><div class="form-group"><label class="label" for="f-rate">Interest rate (%)</label><input type="number" class="input" id="f-rate" value="${v.interestRate}" step="0.1" min="0" max="30"></div><div class="form-group"><label class="label" for="f-term">Term (months)</label><input type="number" class="input" id="f-term" value="${v.loanTermMonths}" step="12" min="12" max="84"></div></div></div></div><div style="display:flex;gap:var(--space-3)"><button class="btn btn-secondary btn-pill" id="step-back">Back</button><button class="btn btn-primary btn-pill" id="step-save" style="flex:1">${this._editId ? 'Save Changes' : 'Add Vehicle'}</button></div>`;
+    const fType = v.financeType || 'none';
+    const isEV = v.fuelType === 'electric';
+    const isPHEV = v.fuelType === 'phev';
+    const price = v.onRoadCost || v.purchasePrice || 0;
+    const underLCT = price < 91387;
+
+    // FBT status note
+    let fbtNote = '';
+    if (isEV && underLCT) {
+      fbtNote = '<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:var(--radius-md);padding:var(--space-3);font-size:var(--font-size-sm);margin-top:var(--space-3)">&#9989; <strong>FBT exempt</strong> — BEV under LCT threshold ($91,387)</div>';
+    } else if (isEV && !underLCT) {
+      fbtNote = '<div style="background:#fff3e0;border:1px solid #ffcc80;border-radius:var(--radius-md);padding:var(--space-3);font-size:var(--font-size-sm);margin-top:var(--space-3)">&#9888;&#65039; BEV over LCT threshold — FBT applies at statutory rate</div>';
+    } else if (isPHEV) {
+      fbtNote = '<div style="background:#fff3e0;border:1px solid #ffcc80;border-radius:var(--radius-md);padding:var(--space-3);font-size:var(--font-size-sm);margin-top:var(--space-3)">&#9888;&#65039; PHEV — FBT exemption ended April 2025</div>';
+    }
+
+    // Residual % based on term
+    const termMonths = v.loanTermMonths || 60;
+    const residualMap = { 12: 65.63, 24: 56.25, 36: 46.88, 48: 37.50, 60: 28.13 };
+    const residualPct = v.residualPct || residualMap[termMonths] || 28.13;
+
+    return `<div class="card"><h2 class="card-title">Finance</h2>
+<div class="form-group"><label class="label" for="f-finance-type">Finance type</label>
+<div class="select-wrapper"><select class="select" id="f-finance-type">
+<option value="none" ${fType==='none'?'selected':''}>Cash (no finance)</option>
+<option value="loan" ${fType==='loan'?'selected':''}>Car loan</option>
+<option value="novated" ${fType==='novated'?'selected':''}>Novated lease (salary sacrifice)</option>
+<option value="chattel" ${fType==='chattel'?'selected':''}>Chattel mortgage (ABN)</option>
+</select></div></div>
+
+<div id="loan-fields" style="${(fType==='loan'||fType==='chattel')?'':'display:none'}">
+<div class="form-group"><label class="label" for="f-loan">Loan amount</label>
+<div class="input-prefix"><span class="prefix-label">$</span>
+<input type="number" class="input" id="f-loan" value="${v.loanAmount || ''}" style="padding-left:32px"></div></div>
+<div class="form-row"><div class="form-group"><label class="label" for="f-rate">Interest rate (%)</label>
+<input type="number" class="input" id="f-rate" value="${v.interestRate}" step="0.1" min="0" max="30"></div>
+<div class="form-group"><label class="label" for="f-term-loan">Term (months)</label>
+<input type="number" class="input" id="f-term-loan" value="${v.loanTermMonths}" step="12" min="12" max="84"></div></div>
+</div>
+
+<div id="chattel-fields" style="${fType==='chattel'?'':'display:none'}">
+<div class="form-group"><label style="display:flex;align-items:center;gap:var(--space-3);cursor:pointer">
+<input type="checkbox" id="f-has-abn" ${v.hasABN?'checked':''} style="width:20px;height:20px">
+<span>I have an ABN (claim GST credit ~$${Math.round((v.purchasePrice||0)/11).toLocaleString()})</span></label></div>
+</div>
+
+<div id="novated-fields" style="${fType==='novated'?'':'display:none'}">
+<div class="form-group"><label class="label" for="f-salary">Annual salary (gross)</label>
+<div class="input-prefix"><span class="prefix-label">$</span>
+<input type="number" class="input" id="f-salary" value="${v.annualSalary || ''}" placeholder="e.g. 85000" style="padding-left:32px"></div></div>
+<div class="form-row"><div class="form-group"><label class="label" for="f-term-novated">Lease term (months)</label>
+<div class="select-wrapper"><select class="select" id="f-term-novated">
+<option value="12" ${termMonths===12?'selected':''}>12 months</option>
+<option value="24" ${termMonths===24?'selected':''}>24 months</option>
+<option value="36" ${termMonths===36?'selected':''}>36 months</option>
+<option value="48" ${termMonths===48?'selected':''}>48 months</option>
+<option value="60" ${termMonths===60?'selected':''}>60 months</option>
+</select></div></div>
+<div class="form-group"><label class="label" for="f-residual">ATO residual (%)</label>
+<input type="number" class="input" id="f-residual" value="${residualPct}" step="0.01" min="0" max="100" readonly
+style="background:var(--color-bg-secondary);cursor:not-allowed"></div></div>
+<div style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-top:var(--space-2)">Residual set by ATO guidelines (TD 2021/6) — cannot be changed</div>
+${fbtNote}
+</div>
+
+</div><div style="display:flex;gap:var(--space-3)"><button class="btn btn-secondary btn-pill" id="step-back">Back</button>
+<button class="btn btn-primary btn-pill" id="step-save" style="flex:1">${this._editId ? 'Save Changes' : 'Add Vehicle'}</button></div>`;
   },
 
   bindStepEvents(step) {
@@ -209,8 +275,22 @@ const Forms = {
       App.toast(vehicleLabel(this._vehicle) + ' saved!', 'success');
       Router.navigate('vehicles');
     });
-    document.getElementById('f-financed')?.addEventListener('change', (e) => {
-      document.getElementById('finance-fields').style.display = e.target.checked ? '' : 'none';
+    // Finance type dropdown handler
+    document.getElementById('f-finance-type')?.addEventListener('change', (e) => {
+      const ft = e.target.value;
+      const loanFields = document.getElementById('loan-fields');
+      const chattelFields = document.getElementById('chattel-fields');
+      const novatedFields = document.getElementById('novated-fields');
+      if (loanFields) loanFields.style.display = (ft === 'loan' || ft === 'chattel') ? '' : 'none';
+      if (chattelFields) chattelFields.style.display = ft === 'chattel' ? '' : 'none';
+      if (novatedFields) novatedFields.style.display = ft === 'novated' ? '' : 'none';
+    });
+    // Novated lease term → auto-update residual
+    document.getElementById('f-term-novated')?.addEventListener('change', (e) => {
+      const term = parseInt(e.target.value);
+      const resMap = { 12: 65.63, 24: 56.25, 36: 46.88, 48: 37.50, 60: 28.13 };
+      const resEl = document.getElementById('f-residual');
+      if (resEl) resEl.value = resMap[term] || 28.13;
     });
 
     // Swipe gesture support for navigating between pages
@@ -472,11 +552,19 @@ const Forms = {
       v.tyreCostPerSet = num('f-tyre-cost');
       v.tyreLifeKm = num('f-tyre-km');
     } else if (step === 3) {
-      const financed = document.getElementById('f-financed')?.checked || false;
-      v.financed = financed;
-      v.loanAmount = num('f-loan');
-      v.interestRate = num('f-rate') || 7.5;
-      v.loanTermMonths = parseInt(val('f-term')) || 60;
+      const fType = val('f-finance-type') || 'none';
+      v.financeType = fType;
+      v.financed = fType !== 'none';
+      if (fType === 'loan' || fType === 'chattel') {
+        v.loanAmount = num('f-loan');
+        v.interestRate = num('f-rate') || 7.5;
+        v.loanTermMonths = parseInt(val('f-term-loan')) || 60;
+        v.hasABN = document.getElementById('f-has-abn')?.checked || false;
+      } else if (fType === 'novated') {
+        v.annualSalary = num('f-salary');
+        v.loanTermMonths = parseInt(val('f-term-novated')) || 60;
+        v.residualPct = parseFloat(val('f-residual')) || 28.13;
+      }
     }
     return true;
   },

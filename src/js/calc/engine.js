@@ -11,6 +11,112 @@
  *   breakdown: { <category>: { total, perKm, perYear } }
  * }
  */
+// Australian FY2025-26 tax brackets (resident individual)
+const AU_TAX_BRACKETS = [
+  { min: 0,      max: 18200,  rate: 0    },
+  { min: 18201,  max: 45000,  rate: 0.16 },
+  { min: 45001,  max: 135000, rate: 0.30 },
+  { min: 135001, max: 190000, rate: 0.37 },
+  { min: 190001, max: Infinity, rate: 0.45 },
+];
+const MEDICARE_LEVY = 0.02;
+
+// ATO residual-value percentages for novated leases (TD 2021/6)
+const ATO_RESIDUAL_PCT = { 12: 65.63, 24: 56.25, 36: 46.88, 48: 37.50, 60: 28.13 };
+
+// FBT exemption: BEVs under LCT threshold are FBT-exempt (PHEVs lost exemption Apr 2025)
+const LCT_THRESHOLD_FY2627 = 91387;
+
+/** Calculate total income tax (including Medicare levy) on a given taxable income */
+function calcTaxOnIncome(taxableIncome) {
+  let tax = 0;
+  for (const b of AU_TAX_BRACKETS) {
+    if (taxableIncome <= 0) break;
+    const span = Math.min(taxableIncome, b.max - b.min + 1);
+    if (span > 0) {
+      tax += span * b.rate;
+      taxableIncome -= span;
+    }
+  }
+  return tax;
+}
+
+/**
+ * Calculate novated-lease salary-sacrifice savings.
+ * Returns { annualLeaseCost, preTaxDeduction, taxSavedPerYear, fbtPerYear,
+ *           netAnnualBenefit, totalBenefit, isFbtExempt, fbtNote }
+ */
+function calcNovatedLeaseSaving(vehicle, scenario) {
+  const salary = vehicle.annualSalary || 0;
+  if (salary <= 0) return null;
+
+  const price = vehicle.onRoadCost || vehicle.purchasePrice || 0;
+  const termMonths = vehicle.loanTermMonths || 60;
+  const termYears  = termMonths / 12;
+  const residualPct = vehicle.residualPct || (ATO_RESIDUAL_PCT[termMonths] || 28.13);
+  const residualVal = price * (residualPct / 100);
+
+  // Annual lease payment (simplified: spread net cost evenly, no interest — 
+  // real novated leases bundle running costs, but we keep it to purchase cost here)
+  const annualLeaseCost = (price - residualVal) / termYears;
+
+  // Running costs bundled into pre-tax (rego, insurance, servicing, fuel estimate)
+  const annualRunning = (vehicle.registrationAnnual || 0)
+    + (vehicle.insuranceAnnual || 0)
+    + ((vehicle.serviceCostPerService || 350) * 12 / (vehicle.serviceIntervalMonths || 12));
+
+  const preTaxDeduction = annualLeaseCost + annualRunning;
+
+  // Tax without novated lease
+  const taxWithout = calcTaxOnIncome(salary) + salary * MEDICARE_LEVY;
+  // Tax with novated lease (reduce taxable income by pre-tax deduction)
+  const reducedSalary = Math.max(0, salary - preTaxDeduction);
+  const taxWith = calcTaxOnIncome(reducedSalary) + reducedSalary * MEDICARE_LEVY;
+  const taxSavedPerYear = taxWithout - taxWith;
+
+  // FBT calculation
+  const isBEV = vehicle.fuelType === 'electric';
+  const isUnderLCT = price < LCT_THRESHOLD_FY2627;
+  const isFbtExempt = isBEV && isUnderLCT;
+
+  let fbtPerYear = 0;
+  let fbtNote = '';
+  if (isFbtExempt) {
+    fbtNote = 'BEV under LCT threshold — FBT exempt';
+  } else {
+    // Statutory formula method: 20% of base value × grossed-up × FBT rate 47%
+    const fbtBase = price * 0.20;
+    const grossUpRate = 2.0802; // Type 1 (GST-inclusive)
+    fbtPerYear = fbtBase * grossUpRate * 0.47;
+    if (isBEV && !isUnderLCT) {
+      fbtNote = 'BEV over LCT threshold ($' + Math.round(LCT_THRESHOLD_FY2627).toLocaleString() + ') — FBT applies';
+    } else if (vehicle.fuelType === 'phev') {
+      fbtNote = 'PHEV — FBT exemption ended Apr 2025';
+    } else {
+      fbtNote = 'FBT applies (statutory formula)';
+    }
+  }
+
+  const netAnnualBenefit = taxSavedPerYear - fbtPerYear;
+  const years = Math.min(scenario.years, termYears);
+  const totalBenefit = netAnnualBenefit * years;
+
+  return {
+    annualLeaseCost,
+    annualRunning,
+    preTaxDeduction,
+    taxSavedPerYear,
+    fbtPerYear,
+    netAnnualBenefit,
+    totalBenefit,
+    isFbtExempt,
+    fbtNote,
+    residualVal,
+    residualPct,
+    termYears,
+  };
+}
+
 function calculateCosts(vehicle, scenario) {
   const km = scenario.years * scenario.kmPerYear;
 
@@ -90,16 +196,37 @@ function calculateCosts(vehicle, scenario) {
   const lostCapitalTotal   = lostCapitalPerYear * scenario.years;
   const lostCapitalPerKm   = km > 0 ? lostCapitalTotal / km : 0;
 
-  // Finance interest (loan cost above principal)
+  // Finance costs — supports car loan, chattel mortgage, and novated lease
   let financeTotal = 0;
   let financePerKm = 0;
   let financePerYear = 0;
-  if (vehicle.financed && vehicle.loanAmount > 0) {
-    const monthlyRate = (vehicle.interestRate / 100) / 12;
-    const n = vehicle.loanTermMonths || 60;
-    if (monthlyRate > 0) {
-      const monthlyPayment = vehicle.loanAmount * monthlyRate / (1 - Math.pow(1 + monthlyRate, -n));
-      financeTotal = (monthlyPayment * n) - vehicle.loanAmount;
+  let novatedMeta = null;
+  let gstCredit = 0;
+  const fType = vehicle.financeType || (vehicle.financed ? 'loan' : 'none');
+
+  if (fType === 'loan' || fType === 'chattel') {
+    const loanAmt = vehicle.loanAmount || 0;
+    if (loanAmt > 0) {
+      const monthlyRate = (vehicle.interestRate / 100) / 12;
+      const n = vehicle.loanTermMonths || 60;
+      if (monthlyRate > 0) {
+        const monthlyPayment = loanAmt * monthlyRate / (1 - Math.pow(1 + monthlyRate, -n));
+        financeTotal = (monthlyPayment * n) - loanAmt;
+      }
+    }
+    // Chattel mortgage: ABN holders can claim GST credit on purchase price (~9.09%)
+    if (fType === 'chattel' && vehicle.hasABN) {
+      gstCredit = (vehicle.purchasePrice || 0) / 11; // GST component
+    }
+    financePerKm  = km > 0 ? financeTotal / km : 0;
+    financePerYear = scenario.years > 0 ? financeTotal / scenario.years : 0;
+  } else if (fType === 'novated') {
+    novatedMeta = calcNovatedLeaseSaving(vehicle, scenario);
+    // For novated lease, "finance cost" is the lease payments minus the tax benefit
+    if (novatedMeta) {
+      const leaseYears = Math.min(scenario.years, novatedMeta.termYears);
+      financeTotal = (novatedMeta.annualLeaseCost * leaseYears) - novatedMeta.totalBenefit;
+      if (financeTotal < 0) financeTotal = 0; // benefit exceeds lease cost
     }
     financePerKm  = km > 0 ? financeTotal / km : 0;
     financePerYear = scenario.years > 0 ? financeTotal / scenario.years : 0;
@@ -109,7 +236,8 @@ function calculateCosts(vehicle, scenario) {
   const grandTotal = depreciation.total + fuel.total + battery.total
     + tyreCostTotal + registration.total + insurance.total
     + servicingTotal + roadsideTotal + parkingTotal + tollsTotal
-    + lostCapitalTotal + financeTotal + repairReserveTotal + stampDutyTotal;
+    + lostCapitalTotal + financeTotal + repairReserveTotal + stampDutyTotal
+    - gstCredit;
   const costPerKm  = km > 0 ? grandTotal / km : 0;
   const costPerYear = scenario.years > 0 ? grandTotal / scenario.years : 0;
 
@@ -135,6 +263,7 @@ function calculateCosts(vehicle, scenario) {
       lostCapital:     lostCapitalTotal,
       financeInterest: financeTotal,
       finance:         financeTotal,   // alias used in detail.js
+      gstCredit:       gstCredit,
       repairReserve:   repairReserveTotal,
       stampDuty:       stampDutyTotal,
     },
@@ -162,6 +291,9 @@ function calculateCosts(vehicle, scenario) {
       purchaseOdometer: _odoKm,
       repairReservePerYear,
       stampDuty: _stampDutyResult,
+      novated: novatedMeta,
+      financeType: fType,
+      gstCredit,
     },
   };
 }

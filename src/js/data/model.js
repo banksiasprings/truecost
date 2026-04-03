@@ -26,7 +26,7 @@ function createVehicle(overrides = {}) {
     serviceIntervalKm: 10000, serviceIntervalMonths: 12, serviceCostPerService: 350,
     serviceType: "independent", tyreCostPerSet: 900, tyreLifeKm: 45000,
     roadsideAssistance: 120, parkingAnnual: 0, tollsAnnual: 0,
-    financed: false, loanAmount: 0, interestRate: 7.5, loanTermMonths: 60,
+    financed: false, financeType: 'none', loanAmount: 0, interestRate: 7.5, loanTermMonths: 60, residualPct: 28.13, annualSalary: 0, hasABN: false,
     scenarioYears: null, scenarioKm: null, opportunityCostRate: null,
     dataSource: "manual", redbookId: null,
   };

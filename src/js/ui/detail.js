@@ -160,6 +160,39 @@ const VehicleDetail = {
           (costs.meta.stampDuty.note || '') +
         '</div>'
       : '') +
+    // ── Novated lease tax saving breakdown ──
+    + ((costs.meta && costs.meta.novated)
+      ? '<div style="margin-top:var(--space-3);padding:var(--space-3) var(--space-4);' +
+          'background:rgba(74,144,217,0.07);border:1px solid rgba(74,144,217,0.28);' +
+          'border-radius:var(--radius-md);font-size:11px;color:var(--color-text-muted);line-height:1.5">' +
+          '<strong style="color:#4A90D9">Novated lease salary sacrifice</strong><br>' +
+          'Annual lease payment: ' + fmtAUD(costs.meta.novated.annualLeaseCost) +
+          ' · Bundled running: ' + fmtAUD(costs.meta.novated.annualRunning) + '/yr<br>' +
+          'Pre-tax deduction: ' + fmtAUD(costs.meta.novated.preTaxDeduction) + '/yr<br>' +
+          'Tax saved: <strong style="color:#27AE60">' + fmtAUD(costs.meta.novated.taxSavedPerYear) + '/yr</strong>' +
+          (costs.meta.novated.fbtPerYear > 0
+            ? ' · FBT cost: <strong style="color:#C0392B">' + fmtAUD(costs.meta.novated.fbtPerYear) + '/yr</strong>'
+            : '') +
+          '<br>Net annual benefit: <strong style="color:' +
+            (costs.meta.novated.netAnnualBenefit >= 0 ? '#27AE60' : '#C0392B') + '">' +
+            fmtAUD(costs.meta.novated.netAnnualBenefit) + '/yr</strong>' +
+          ' · Over ' + costs.meta.novated.termYears + ' yrs: ' +
+            fmtAUD(costs.meta.novated.totalBenefit) + '<br>' +
+          '<span style="font-size:10px;opacity:0.8">' + (costs.meta.novated.fbtNote || '') +
+          ' · Residual: ' + costs.meta.novated.residualPct + '% (' +
+            fmtAUD(costs.meta.novated.residualVal) + ')</span>' +
+        '</div>'
+      : '') +
+    // ── Chattel mortgage GST credit note ──
+    + ((costs.meta && costs.meta.gstCredit > 0)
+      ? '<div style="margin-top:var(--space-3);padding:var(--space-3) var(--space-4);' +
+          'background:rgba(74,144,217,0.07);border:1px solid rgba(74,144,217,0.28);' +
+          'border-radius:var(--radius-md);font-size:11px;color:var(--color-text-muted);line-height:1.5">' +
+          '<strong style="color:#4A90D9">Chattel mortgage GST credit</strong> — ' +
+          'ABN holder claiming ' + fmtAUD(costs.meta.gstCredit) + ' GST credit on purchase price. ' +
+          'This reduces your effective total cost of ownership.' +
+        '</div>'
+      : '') +
 
     // ── Repair reserve explanation (if applicable) ──
     ((costs.total.repairReserve || 0) > 0
