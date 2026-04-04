@@ -198,6 +198,11 @@ const Database = {
       );
     }
 
+    // Apply price cap from natural language search
+    if (this.state._maxPrice) {
+      vehicles = vehicles.filter(v => !v.purchasePrice || v.purchasePrice <= this.state._maxPrice);
+    }
+
     // Apply sorting
     vehicles = this.sortVehicles(vehicles);
 
@@ -364,19 +369,154 @@ const Database = {
   },
 
   renderSearchBar(container) {
+    const suggestions = [
+      'EV under $60k',
+      'Cheapest to run',
+      'Family SUV',
+      'Ute under $70k',
+      'Hybrid under $50k',
+      'Luxury car',
+    ];
+    const hasSpeech = ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
     const searchHtml = `
       <div class="database-search">
-        <input
-          type="text"
-          id="database-search"
-          class="database-search-input"
-          placeholder="Search by make, model, variant..."
-          value="${this.state.searchQuery}"
-        >
+        <div class="db-search-row">
+          <input
+            type="text"
+            id="database-search"
+            class="database-search-input"
+            placeholder="e.g. cheap EV, family SUV, ute under $70k…"
+            value="${this.state.searchQuery}"
+          >
+          ${hasSpeech ? `
+          <button class="db-mic-btn" id="db-mic-btn" aria-label="Voice search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="2" width="6" height="12" rx="3"/>
+              <path d="M5 10a7 7 0 0 0 14 0"/>
+              <line x1="12" y1="19" x2="12" y2="22"/>
+              <line x1="8" y1="22" x2="16" y2="22"/>
+            </svg>
+          </button>` : ''}
+        </div>
+        <div class="db-search-chips">
+          ${suggestions.map(s => `<button class="db-search-chip" data-query="${s}">${s}</button>`).join('')}
+        </div>
       </div>
     `;
     container.insertAdjacentHTML('beforeend', searchHtml);
-    // Listener is attached via event delegation in bindDelegatedEvents() — survives re-renders
+    // Input/keyboard listeners attached via event delegation in _bindSearchDelegation()
+    // Mic and chip listeners attached here (they don't trigger re-render immediately)
+    this._bindMicAndChips();
+  },
+
+  // ── Natural language parser ───────────────────────────────────────────────
+  _parseNaturalQuery(query) {
+    const q = query.toLowerCase();
+    const result = { searchQuery: '', fuelTypes: [], categories: [], sortBy: null, maxPrice: null };
+
+    // Fuel type
+    if (/\belectric\b|\bev\b|\bevs\b/.test(q))          result.fuelTypes.push('electric');
+    if (/\bhybrid\b/.test(q) && !/phev|plug/.test(q))   result.fuelTypes.push('hybrid');
+    if (/\bphev\b|\bplug.?in\b/.test(q))                 result.fuelTypes.push('phev');
+    if (/\bdiesel\b/.test(q))                            result.fuelTypes.push('diesel');
+    if (/\bpetrol\b|\bgas\b/.test(q))                   result.fuelTypes.push('petrol');
+
+    // Category
+    if (/\b(large\s)?suv\b|\b4wd\b|\b4x4\b/.test(q))   result.categories.push('SUV');
+    if (/\bute\b|\bpickup\b|\btruck\b/.test(q))         result.categories.push('Ute');
+    if (/\bluxury\b|\bpremium\b/.test(q))               result.categories.push('Luxury Car');
+    if (/\bsports?\b/.test(q))                          result.categories.push('Sports Car');
+    if (/\bvan\b|\bpeople.?mover\b|\bmpv\b/.test(q))   result.categories.push('Van/People Mover');
+    if (/\bsmall.?car\b|\bhatch\b|\bcity\b/.test(q))   result.categories.push('Small Car');
+    if (/\bsedan\b|\bmedium\b/.test(q))                 result.categories.push('Medium/Large Car');
+    if (/\bfamily\b/.test(q) && result.categories.length === 0) result.categories.push('SUV');
+
+    // Sort intent
+    if (/cheap(est)?\s*(to\s*run|running)|low(est)?\s*run|cheapest|most\s*economical|best\s*economy/.test(q)) {
+      result.sortBy = 'running-cost';
+    } else if (/cheap(est)?|budget|affordable|lowest\s*price|best\s*price/.test(q)) {
+      result.sortBy = 'price-low';
+    } else if (/economy|fuel\s*(efficient|economy)|best\s*mpg/.test(q)) {
+      result.sortBy = 'economy';
+    }
+
+    // Price cap — "under $60k", "less than 50000", "below $45,000"
+    const priceMatch = q.match(/(?:under|less\s*than|below|max|<)\s*\$?([\d,]+)\s*(k)?/);
+    if (priceMatch) {
+      let val = parseInt(priceMatch[1].replace(/,/g, ''));
+      if (priceMatch[2] === 'k') val *= 1000;
+      result.maxPrice = val;
+    }
+
+    // Make/model keyword — strip intent words, keep proper nouns
+    const stripped = query
+      .replace(/\b(find|show|search|get|give|me|a|an|the|some|good|great|best|cheap|cheapest|affordable|budget|luxury|premium|family|new|used|under|less than|below|above|over|around|about|with|for|and|or|ev|electric|hybrid|phev|plug.?in|diesel|petrol|suv|ute|sedan|hatch|sports?|van|people.?mover|4wd|4x4)\b/gi, '')
+      .replace(/\$[\d,]+k?/gi, '')
+      .replace(/\s+/g, ' ').trim();
+    if (stripped.length > 1) result.searchQuery = stripped;
+
+    return result;
+  },
+
+  _applyNaturalQuery(query) {
+    const parsed = this._parseNaturalQuery(query);
+    this.state.searchQuery      = parsed.searchQuery;
+    this.state.selectedFuelTypes  = parsed.fuelTypes;
+    this.state.selectedCategories = parsed.categories;
+    if (parsed.sortBy)   this.state.sortBy = parsed.sortBy;
+    if (parsed.maxPrice) this.state._maxPrice = parsed.maxPrice;
+    else                 delete this.state._maxPrice;
+    this.filterAndSort();
+    this._commitSearch(parsed.searchQuery);
+  },
+
+  _bindMicAndChips() {
+    // Suggested chips
+    document.querySelectorAll('.db-search-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const q = chip.dataset.query;
+        const inp = document.querySelector('#database-search');
+        if (inp) inp.value = q;
+        this._hideSuggestions();
+        this._applyNaturalQuery(q);
+      });
+    });
+
+    // Voice search
+    const micBtn = document.getElementById('db-mic-btn');
+    if (!micBtn) return;
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return;
+
+    const recognition = new SR();
+    recognition.lang = 'en-AU';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    micBtn.addEventListener('click', () => {
+      if (micBtn.classList.contains('listening')) {
+        recognition.stop();
+        return;
+      }
+      recognition.start();
+      micBtn.classList.add('listening');
+      micBtn.setAttribute('aria-label', 'Listening…');
+    });
+
+    recognition.onresult = (e) => {
+      const transcript = e.results[0][0].transcript;
+      const inp = document.querySelector('#database-search');
+      if (inp) inp.value = transcript;
+      micBtn.classList.remove('listening');
+      micBtn.setAttribute('aria-label', 'Voice search');
+      this._hideSuggestions();
+      this._applyNaturalQuery(transcript);
+    };
+
+    recognition.onerror = recognition.onend = () => {
+      micBtn.classList.remove('listening');
+      micBtn.setAttribute('aria-label', 'Voice search');
+    };
   },
 
   renderFuelTypeFilters(container) {
@@ -707,10 +847,17 @@ const Database = {
 
       .database-search {
         margin-bottom: var(--space-4, 1.5rem);
+        position: relative;
+      }
+
+      .db-search-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
       }
 
       .database-search-input {
-        width: 100%;
+        flex: 1;
         padding: var(--space-3, 1rem);
         font-size: var(--font-size-base, 1rem);
         border: 1px solid var(--color-border, #e5e7eb);
@@ -730,10 +877,62 @@ const Database = {
         box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
       }
 
-      /* Autocomplete suggestions dropdown */
-      .database-search {
-        position: relative;
+      /* Mic button */
+      .db-mic-btn {
+        flex-shrink: 0;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 1.5px solid var(--color-border, #e5e7eb);
+        background: var(--color-surface, #fff);
+        color: var(--color-text-muted, #6b7280);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: border-color 0.15s, color 0.15s, background 0.15s;
       }
+      .db-mic-btn:hover {
+        border-color: var(--color-primary, #0066cc);
+        color: var(--color-primary, #0066cc);
+      }
+      .db-mic-btn.listening {
+        border-color: #ef4444;
+        color: #ef4444;
+        background: #fff5f5;
+        animation: mic-pulse 1s ease-in-out infinite;
+      }
+      @keyframes mic-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.3); }
+        50%       { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+      }
+
+      /* Suggested search chips */
+      .db-search-chips {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+      .db-search-chip {
+        padding: 6px 12px;
+        border-radius: 9999px;
+        border: 1.5px solid var(--color-border, #e5e7eb);
+        background: var(--color-surface, #fff);
+        color: var(--color-text-muted, #6b7280);
+        font-size: var(--font-size-xs, 0.75rem);
+        font-weight: 500;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: border-color 0.15s, color 0.15s, background 0.15s;
+      }
+      .db-search-chip:hover {
+        border-color: var(--color-primary, #0066cc);
+        color: var(--color-primary, #0066cc);
+        background: var(--color-primary-light, #f0f7ff);
+      }
+
+      /* Autocomplete suggestions dropdown */
 
       #db-suggestions {
         position: absolute;
