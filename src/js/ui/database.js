@@ -4,7 +4,9 @@ const Database = {
     selectedFuelTypes: [],
     selectedCategories: [],
     sortBy: 'name',
-    filteredVehicles: []
+    filteredVehicles: [],
+    topThree: [],
+    remainingVehicles: []
   },
 
   init() {
@@ -13,7 +15,9 @@ const Database = {
       selectedFuelTypes: [],
       selectedCategories: [],
       sortBy: 'name',
-      filteredVehicles: []
+      filteredVehicles: [],
+      topThree: [],
+      remainingVehicles: []
     };
     this.filterAndSort();
   },
@@ -49,6 +53,16 @@ const Database = {
     vehicles = this.sortVehicles(vehicles);
 
     this.state.filteredVehicles = vehicles;
+
+    // Compute top 3 by estimated annual running cost (independent of user sort)
+    const byRunningCost = [...vehicles].sort((a, b) =>
+      this.estimateAnnualRunningCost(a) - this.estimateAnnualRunningCost(b)
+    );
+    this.state.topThree = byRunningCost.slice(0, Math.min(3, vehicles.length));
+
+    // Remaining = user-sorted list minus top 3 (by object reference)
+    const top3Set = new Set(this.state.topThree);
+    this.state.remainingVehicles = vehicles.filter(v => !top3Set.has(v));
   },
 
   sortVehicles(vehicles) {
@@ -109,6 +123,38 @@ const Database = {
       return vehicle.evRangeKm ? `${vehicle.evRangeKm}km range` : 'N/A';
     }
     return vehicle.fuelConsumption ? `${vehicle.fuelConsumption}L/100km` : 'N/A';
+  },
+
+  estimateAnnualRunningCost(v) {
+    const kmPerYear = 15000;
+    const petrolPrice = 2.00;      // AUD/L
+    const dieselPrice = 2.10;      // AUD/L
+    const electricityPrice = 0.30; // AUD/kWh
+
+    let fuelCost = 0;
+    if (v.fuelType === 'electric') {
+      fuelCost = (v.evConsumptionKwh || 18) / 100 * kmPerYear * electricityPrice;
+    } else if (v.fuelType === 'diesel') {
+      fuelCost = (v.fuelConsumption || 8) / 100 * kmPerYear * dieselPrice;
+    } else if (v.fuelType === 'phev') {
+      const electricPct = (v.phevElectricPct || 30) / 100;
+      fuelCost = (v.evConsumptionKwh || 15) / 100 * (kmPerYear * electricPct) * electricityPrice
+               + (v.fuelConsumption || 5) / 100 * (kmPerYear * (1 - electricPct)) * petrolPrice;
+    } else {
+      // petrol or hybrid
+      fuelCost = (v.fuelConsumption || 8) / 100 * kmPerYear * petrolPrice;
+    }
+
+    const servicesPerYear = v.serviceIntervalKm
+      ? kmPerYear / v.serviceIntervalKm
+      : (v.serviceIntervalMonths ? 12 / v.serviceIntervalMonths : 1);
+    const serviceCost = (v.serviceCostPerService || 350) * servicesPerYear;
+
+    const tyreCost = (v.tyreCostPerSet || 900) / (v.tyreLifeKm || 40000) * kmPerYear;
+
+    const insuranceCost = v.insuranceAnnual || 1800;
+
+    return Math.round(fuelCost + serviceCost + tyreCost + insuranceCost);
   },
 
   getFuelTypeBadgeClass(fuelType) {
@@ -317,7 +363,103 @@ const Database = {
     container.insertAdjacentHTML('beforeend', headerHtml);
   },
 
+  buildVehicleCardHtml(vehicle, idx, dataAttrPrefix, extraHeaderHtml = '') {
+    const annualCost = this.estimateAnnualRunningCost(vehicle);
+    return `
+      <div class="vehicle-card card">
+        <div class="card-header">
+          <div class="vehicle-title">
+            ${extraHeaderHtml}
+            <div class="vehicle-year">${vehicle.year || 'N/A'}</div>
+            <div class="vehicle-name">${vehicle.make || ''} ${vehicle.model || ''}</div>
+          </div>
+          <div class="vehicle-badge">
+            <span class="badge ${this.getFuelTypeBadgeClass(vehicle.fuelType)}">
+              ${vehicle.fuelType || 'Petrol'}
+            </span>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="vehicle-variant">${vehicle.variant || ''}</div>
+
+          <div class="vehicle-specs">
+            <div class="spec-item">
+              <span class="spec-label">Price</span>
+              <span class="spec-value">${this.formatPrice(vehicle.purchasePrice)}</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">${vehicle.fuelType === 'electric' ? 'Range' : 'Consumption'}</span>
+              <span class="spec-value">${this.formatConsumption(vehicle)}</span>
+            </div>
+            <div class="spec-item spec-item-wide">
+              <span class="spec-label">Est. annual running cost</span>
+              <span class="spec-value spec-value-cost">${this.formatPrice(annualCost)}/yr</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <button
+            class="btn btn-secondary btn-pill btn-sm ${dataAttrPrefix}-add-compare"
+            data-${dataAttrPrefix}-index="${idx}"
+          >
+            Add to Compare
+          </button>
+          <button
+            class="btn btn-ghost btn-pill btn-sm ${dataAttrPrefix}-view-details"
+            data-${dataAttrPrefix}-index="${idx}"
+          >
+            View Details
+          </button>
+        </div>
+      </div>
+    `;
+  },
+
+  renderTopThree(container) {
+    const top3 = this.state.topThree;
+    if (top3.length === 0) return;
+
+    const medals = ['🥇', '🥈', '🥉'];
+    const rankLabels = ['1st', '2nd', '3rd'];
+
+    const sectionHtml = `
+      <div class="top3-section">
+        <div class="top3-header">
+          <span class="top3-title">🏆 Top ${top3.length} Lowest Running Cost</span>
+          <span class="top3-subtitle">Est. at 15,000 km/yr · fuel + servicing + tyres + insurance</span>
+        </div>
+        <div class="top3-grid">
+          ${top3.map((vehicle, idx) => `
+            <div class="top3-card-wrap">
+              <div class="rank-badge rank-${idx + 1}">${medals[idx]} ${rankLabels[idx]}</div>
+              ${this.buildVehicleCardHtml(vehicle, idx, 'top3')}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+    container.insertAdjacentHTML('beforeend', sectionHtml);
+
+    container.querySelectorAll('.top3-add-compare').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt(e.target.dataset.top3Index);
+        this.handleAddToCompare(this.state.topThree[idx]);
+      });
+    });
+
+    container.querySelectorAll('.top3-view-details').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt(e.target.dataset.top3Index);
+        this.handleViewDetails(this.state.topThree[idx]);
+      });
+    });
+  },
+
   renderVehicleCards(container) {
+    const remaining = this.state.remainingVehicles;
+
     if (this.state.filteredVehicles.length === 0) {
       const emptyHtml = `
         <div class="database-empty">
@@ -328,71 +470,29 @@ const Database = {
       return;
     }
 
-    const cardsHtml = `
-      <div class="database-grid">
-        ${this.state.filteredVehicles.map((vehicle, idx) => `
-          <div class="vehicle-card card">
-            <div class="card-header">
-              <div class="vehicle-title">
-                <div class="vehicle-year">${vehicle.year || 'N/A'}</div>
-                <div class="vehicle-name">${vehicle.make || ''} ${vehicle.model || ''}</div>
-              </div>
-              <div class="vehicle-badge">
-                <span class="badge ${this.getFuelTypeBadgeClass(vehicle.fuelType)}">
-                  ${vehicle.fuelType || 'Petrol'}
-                </span>
-              </div>
-            </div>
+    if (remaining.length === 0) return;
 
-            <div class="card-body">
-              <div class="vehicle-variant">${vehicle.variant || ''}</div>
-
-              <div class="vehicle-specs">
-                <div class="spec-item">
-                  <span class="spec-label">Price</span>
-                  <span class="spec-value">${this.formatPrice(vehicle.purchasePrice)}</span>
-                </div>
-                <div class="spec-item">
-                  <span class="spec-label">${vehicle.fuelType === 'electric' ? 'Range' : 'Consumption'}</span>
-                  <span class="spec-value">${this.formatConsumption(vehicle)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="card-footer">
-              <button
-                class="btn btn-secondary btn-pill btn-sm database-add-compare"
-                data-preset-index="${idx}"
-              >
-                Add to Compare
-              </button>
-              <button
-                class="btn btn-ghost btn-pill btn-sm database-view-details"
-                data-preset-index="${idx}"
-              >
-                View Details
-              </button>
-            </div>
-          </div>
-        `).join('')}
+    const sectionHtml = `
+      <div class="remaining-section">
+        <div class="remaining-header">All results</div>
+        <div class="database-grid">
+          ${remaining.map((vehicle, idx) => this.buildVehicleCardHtml(vehicle, idx, 'preset')).join('')}
+        </div>
       </div>
     `;
-    container.insertAdjacentHTML('beforeend', cardsHtml);
+    container.insertAdjacentHTML('beforeend', sectionHtml);
 
-    // Attach event listeners
-    container.querySelectorAll('.database-add-compare').forEach(btn => {
+    container.querySelectorAll('.preset-add-compare').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const idx = parseInt(e.target.dataset.presetIndex);
-        const preset = this.state.filteredVehicles[idx];
-        this.handleAddToCompare(preset);
+        this.handleAddToCompare(this.state.remainingVehicles[idx]);
       });
     });
 
-    container.querySelectorAll('.database-view-details').forEach(btn => {
+    container.querySelectorAll('.preset-view-details').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const idx = parseInt(e.target.dataset.presetIndex);
-        const preset = this.state.filteredVehicles[idx];
-        this.handleViewDetails(preset);
+        this.handleViewDetails(this.state.remainingVehicles[idx]);
       });
     });
   },
@@ -414,6 +514,7 @@ const Database = {
     this.renderCategoryTabs(container);
     this.renderSortDropdown(container);
     this.renderResultsHeader(container);
+    this.renderTopThree(container);
     this.renderVehicleCards(container);
 
     // Inject styles
@@ -801,6 +902,91 @@ const Database = {
       .database-empty p {
         margin: 0;
         font-size: var(--font-size-base, 1rem);
+      }
+
+      /* ── Top 3 section ── */
+      .top3-section {
+        margin-bottom: var(--space-5, 2rem);
+        padding: var(--space-4, 1.5rem);
+        background: linear-gradient(135deg, #fef9ec 0%, #f0fdf4 100%);
+        border: 1px solid #d4edda;
+        border-radius: var(--radius-lg, 12px);
+      }
+
+      .top3-header {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: var(--space-2, 0.5rem);
+        margin-bottom: var(--space-4, 1.5rem);
+      }
+
+      .top3-title {
+        font-size: var(--font-size-base, 1rem);
+        font-weight: 700;
+        color: var(--color-text, #1f2937);
+      }
+
+      .top3-subtitle {
+        font-size: var(--font-size-xs, 0.75rem);
+        color: var(--color-text-muted, #6b7280);
+      }
+
+      .top3-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--space-3, 1rem);
+      }
+
+      @media (max-width: 900px) {
+        .top3-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .top3-card-wrap {
+        position: relative;
+        padding-top: var(--space-4, 1.5rem);
+      }
+
+      .rank-badge {
+        position: absolute;
+        top: 0;
+        left: var(--space-3, 1rem);
+        font-size: var(--font-size-xs, 0.75rem);
+        font-weight: 700;
+        padding: 2px 10px;
+        border-radius: 999px;
+        color: white;
+        z-index: 1;
+      }
+
+      .rank-1 { background: #D97706; }
+      .rank-2 { background: #6B7280; }
+      .rank-3 { background: #92400E; }
+
+      .spec-item-wide {
+        grid-column: 1 / -1;
+      }
+
+      .spec-value-cost {
+        color: #15803D;
+      }
+
+      /* ── Remaining vehicles section ── */
+      .remaining-section {
+        margin-bottom: var(--space-6, 2.5rem);
+      }
+
+      .remaining-header {
+        font-size: var(--font-size-sm, 0.875rem);
+        font-weight: 600;
+        color: var(--color-text-muted, #6b7280);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: var(--space-3, 1rem);
+        padding-bottom: var(--space-2, 0.5rem);
+        border-bottom: 1px solid var(--color-border, #e5e7eb);
       }
     `;
 
