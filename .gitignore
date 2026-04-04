@@ -3,3 +3,15 @@ node_modules/
 *.log
 .env
 .vscode/
+
+# Android build artifacts & secrets
+android.keystore
+*.apk
+*.apk.idsig
+android-twa/.gradle/
+android-twa/app/build/
+android-twa/build/
+android-twa/local.properties
+
+# Claude worktrees (internal dev tooling — not part of the app)
+.claude/
