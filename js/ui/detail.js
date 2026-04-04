@@ -34,6 +34,16 @@ const VehicleDetail = {
 
     const costs = calculateCosts(vehicle, scenario);
 
+    // Hero image
+    const heroEl = document.getElementById('detail-hero');
+    if (heroEl) {
+      if (vehicle.imageUrl) {
+        heroEl.innerHTML = `<div style="background-image:url('${vehicle.imageUrl}');background-size:cover;background-position:center;width:100%;height:220px;border-radius:0 0 16px 16px;margin:-16px 0 16px;"></div>`;
+      } else {
+        heroEl.innerHTML = '';
+      }
+    }
+
     // Header
     document.getElementById('detail-vehicle-title').textContent = vehicleLabel(vehicle);
     document.getElementById('btn-detail-edit').onclick = () =>

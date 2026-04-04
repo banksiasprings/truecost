@@ -646,10 +646,19 @@ const Database = {
     container.insertAdjacentHTML('beforeend', headerHtml);
   },
 
+  _fuelEmoji(fuelType) {
+    const map = { electric: '⚡', hybrid: '🔋', phev: '🔋', diesel: '⛽', petrol: '⛽', lpg: '🔵' };
+    return map[(fuelType || '').toLowerCase()] || '🚗';
+  },
+
   buildVehicleCardHtml(vehicle, idx, dataAttrPrefix, extraHeaderHtml = '') {
     const annualCost = this.estimateAnnualRunningCost(vehicle);
+    const imgHtml = vehicle.imageUrl
+      ? `<div class="preset-card-img" style="background-image:url('${vehicle.imageUrl}')"></div>`
+      : `<div class="preset-card-img preset-card-img--placeholder"><span class="preset-card-img-icon">${this._fuelEmoji(vehicle.fuelType)}</span></div>`;
     return `
       <div class="vehicle-card card">
+        ${imgHtml}
         <div class="card-header">
           <div class="vehicle-title">
             ${extraHeaderHtml}
@@ -1413,6 +1422,26 @@ const Database = {
         margin-bottom: var(--space-3, 1rem);
         padding-bottom: var(--space-2, 0.5rem);
         border-bottom: 1px solid var(--color-border, #e5e7eb);
+      }
+
+      /* ── Vehicle glamour shots ── */
+      .preset-card-img {
+        width: 100%;
+        height: 160px;
+        background-size: cover;
+        background-position: center;
+        border-radius: 10px 10px 0 0;
+        background-color: #f1f5f9;
+        flex-shrink: 0;
+      }
+      .preset-card-img--placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+      }
+      .preset-card-img-icon {
+        line-height: 1;
       }
     `;
 
