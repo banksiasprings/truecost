@@ -456,7 +456,7 @@ ${fbtNote}
         const preset = _results[idx];
         if (!preset) return;
         // Apply all preset fields to vehicle
-        Object.assign(this._vehicle, preset);
+        VehicleImport.applyPreset(preset, this._vehicle);
         // Re-render step to show pre-filled values
         this.renderStep(0);
       });

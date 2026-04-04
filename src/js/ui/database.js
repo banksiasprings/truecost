@@ -140,7 +140,7 @@ const Database = {
       const vehicle = createVehicle();
       VehicleImport.applyPreset(preset, vehicle);
       await saveVehicle(vehicle);
-      Router.navigate('vehicle-detail', { id: vehicle.id });
+      Router.navigate('detail', { id: vehicle.id });
     } catch (error) {
       console.error('Error viewing details:', error);
       App.toast('Error loading details', 'error');
