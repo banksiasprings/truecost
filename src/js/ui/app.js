@@ -85,8 +85,9 @@ const App = {
     Router.register("database",    () => { Database.init(); Database.render(); });
     Router.register("feedback",    () => Feedback.render());
 
-    // Start on vehicles page
-    Router.navigate("vehicles");
+    // Show onboarding on first launch — skips straight to vehicles if returning user
+    const isOnboarding = window.Onboarding && Onboarding.maybeShow();
+    if (!isOnboarding) Router.navigate("vehicles");
 
     // Handle import / Web Share Target URL params
     var _urlP = new URLSearchParams(location.search);
