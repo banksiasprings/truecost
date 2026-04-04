@@ -28,19 +28,147 @@ const Database = {
     if (!container || container._searchDelegationBound) return;
     container._searchDelegationBound = true;
 
+    // Input: show suggestions live without full page re-render
     container.addEventListener('input', (e) => {
       if (e.target.id !== 'database-search') return;
-      const cursorPos = e.target.selectionStart;
-      this.state.searchQuery = e.target.value;
-      this.filterAndSort();
-      this.render();
-      // Restore focus + cursor so typing feels uninterrupted
-      const restored = document.querySelector('#database-search');
-      if (restored) {
-        restored.focus();
-        restored.setSelectionRange(cursorPos, cursorPos);
+      const query = e.target.value;
+      this.state.searchQuery = query;
+      if (query.trim().length === 0) {
+        this._hideSuggestions();
+        this.filterAndSort();
+        this._renderAfterSearch();
+      } else {
+        this._showSuggestions(query, e.target);
       }
     });
+
+    // Keyboard navigation inside the search input
+    container.addEventListener('keydown', (e) => {
+      if (e.target.id !== 'database-search') return;
+      const list = document.querySelector('#db-suggestions');
+      if (!list) return;
+      const items = list.querySelectorAll('.db-suggestion-item');
+      const active = list.querySelector('.db-suggestion-item.focused');
+      const activeIdx = active ? [...items].indexOf(active) : -1;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = items[activeIdx + 1] || items[0];
+        items.forEach(i => i.classList.remove('focused'));
+        next?.classList.add('focused');
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prev = items[activeIdx - 1] || items[items.length - 1];
+        items.forEach(i => i.classList.remove('focused'));
+        prev?.classList.add('focused');
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const focused = list.querySelector('.db-suggestion-item.focused');
+        if (focused) focused.click();
+        else this._commitSearch(e.target.value);
+      } else if (e.key === 'Escape') {
+        this._hideSuggestions();
+        this._commitSearch(e.target.value);
+      }
+    });
+
+    // Click outside → hide suggestions and commit
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#database-search') && !e.target.closest('#db-suggestions')) {
+        const hadSuggestions = !!document.querySelector('#db-suggestions');
+        this._hideSuggestions();
+        if (hadSuggestions) this._commitSearch(this.state.searchQuery);
+      }
+    });
+  },
+
+  _showSuggestions(query, inputEl) {
+    const q = query.toLowerCase();
+    const all = window.VehiclePresets.all || [];
+
+    // Build unique make+model+fuelType entries ranked by relevance
+    const seen = new Set();
+    const suggestions = [];
+    for (const v of all) {
+      const makeLc    = (v.make    || '').toLowerCase();
+      const modelLc   = (v.model   || '').toLowerCase();
+      const variantLc = (v.variant || '').toLowerCase();
+      const matchesMake    = makeLc.includes(q);
+      const matchesModel   = modelLc.includes(q);
+      const matchesVariant = variantLc.includes(q);
+      if (!matchesMake && !matchesModel && !matchesVariant) continue;
+
+      const key = `${v.make}|${v.model}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      // Rank: make-start > model-start > anywhere
+      let rank = matchesMake && makeLc.startsWith(q) ? 0
+               : matchesModel && modelLc.startsWith(q) ? 1
+               : 2;
+      suggestions.push({ make: v.make, model: v.model, fuelType: v.fuelType, category: v.category, rank });
+      if (suggestions.length >= 30) break;
+    }
+    suggestions.sort((a, b) => a.rank - b.rank || (a.make + a.model).localeCompare(b.make + b.model));
+    const top = suggestions.slice(0, 8);
+
+    this._hideSuggestions();
+    if (top.length === 0) return;
+
+    const wrap = document.querySelector('.database-search');
+    if (!wrap) return;
+
+    const fuelEmoji = { electric: '⚡', phev: '🔌', hybrid: '🌿', diesel: '🛢️', petrol: '⛽' };
+
+    const ul = document.createElement('ul');
+    ul.id = 'db-suggestions';
+    ul.setAttribute('role', 'listbox');
+    ul.innerHTML = top.map((s, i) => {
+      const icon = fuelEmoji[s.fuelType] || '🚗';
+      const label = [s.make, s.model].filter(Boolean).join(' ');
+      const sub   = [s.category, s.fuelType ? s.fuelType.charAt(0).toUpperCase() + s.fuelType.slice(1) : ''].filter(Boolean).join(' · ');
+      return `<li class="db-suggestion-item" role="option" data-value="${label}" tabindex="-1">
+        <span class="db-sug-icon">${icon}</span>
+        <span class="db-sug-text">
+          <span class="db-sug-name">${label}</span>
+          ${sub ? `<span class="db-sug-sub">${sub}</span>` : ''}
+        </span>
+      </li>`;
+    }).join('');
+
+    wrap.appendChild(ul);
+
+    // Click a suggestion → commit search
+    ul.addEventListener('click', (e) => {
+      const item = e.target.closest('.db-suggestion-item');
+      if (!item) return;
+      const val = item.dataset.value;
+      this.state.searchQuery = val;
+      const inp = document.querySelector('#database-search');
+      if (inp) inp.value = val;
+      this._hideSuggestions();
+      this._commitSearch(val);
+    });
+  },
+
+  _hideSuggestions() {
+    document.querySelector('#db-suggestions')?.remove();
+  },
+
+  _commitSearch(query) {
+    this.state.searchQuery = query;
+    this.filterAndSort();
+    const cursorPos = (document.querySelector('#database-search') || {}).selectionStart || query.length;
+    this.render();
+    const inp = document.querySelector('#database-search');
+    if (inp) { inp.focus(); inp.setSelectionRange(cursorPos, cursorPos); }
+  },
+
+  _renderAfterSearch() {
+    const cursorPos = (document.querySelector('#database-search') || {}).selectionStart || 0;
+    this.render();
+    const inp = document.querySelector('#database-search');
+    if (inp) { inp.focus(); inp.setSelectionRange(cursorPos, cursorPos); }
   },
 
   filterAndSort() {
@@ -600,6 +728,70 @@ const Database = {
         outline: none;
         border-color: var(--color-primary, #0066cc);
         box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+      }
+
+      /* Autocomplete suggestions dropdown */
+      .database-search {
+        position: relative;
+      }
+
+      #db-suggestions {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        background: var(--color-surface, #ffffff);
+        border: 1px solid var(--color-border, #e5e7eb);
+        border-radius: var(--radius-md, 8px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        list-style: none;
+        margin: 0;
+        padding: 4px 0;
+        z-index: 200;
+        max-height: 320px;
+        overflow-y: auto;
+      }
+
+      .db-suggestion-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        cursor: pointer;
+        transition: background 0.1s;
+      }
+
+      .db-suggestion-item:hover,
+      .db-suggestion-item.focused {
+        background: var(--color-primary-light, #f0f7ff);
+      }
+
+      .db-sug-icon {
+        font-size: 1.25rem;
+        flex-shrink: 0;
+        width: 28px;
+        text-align: center;
+      }
+
+      .db-sug-text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+
+      .db-sug-name {
+        font-size: var(--font-size-sm, 0.875rem);
+        font-weight: 600;
+        color: var(--color-text, #1f2937);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .db-sug-sub {
+        font-size: var(--font-size-xs, 0.75rem);
+        color: var(--color-text-muted, #6b7280);
+        margin-top: 1px;
       }
 
       .database-filters {
