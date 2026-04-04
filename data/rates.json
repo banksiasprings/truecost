@@ -1,0 +1,93 @@
+{
+  "meta": {
+    "updated": "2026-04-01T00:00:00Z",
+    "source": "AIP (fuel) + state transport departments (rego)",
+    "version": "1.0",
+    "notes": "Rego totals are estimates including CTP where bundled. Verify at your state transport dept."
+  },
+  "fuel": {
+    "ulp91": 175,
+    "premium95": 190,
+    "premium98": 205,
+    "diesel": 185,
+    "lpg": 88,
+    "evHomeRate": 30,
+    "evPublicRate": 60
+  },
+  "registration": {
+    "QLD": {
+      "base": 289,
+      "ctp": 400,
+      "total": 689
+    },
+    "NSW": {
+      "base": 394,
+      "ctp": 500,
+      "total": 894
+    },
+    "VIC": {
+      "base": 844,
+      "ctp": 0,
+      "total": 844
+    },
+    "SA": {
+      "base": 320,
+      "ctp": 450,
+      "total": 770
+    },
+    "WA": {
+      "base": 350,
+      "ctp": 380,
+      "total": 730
+    },
+    "ACT": {
+      "base": 580,
+      "ctp": 0,
+      "total": 580
+    },
+    "TAS": {
+      "base": 260,
+      "ctp": 340,
+      "total": 600
+    },
+    "NT": {
+      "base": 230,
+      "ctp": 300,
+      "total": 530
+    }
+  },
+  "stampDuty": {
+    "QLD": {
+      "rate": 0.031,
+      "notes": "3.1% for vehicles under $100k"
+    },
+    "NSW": {
+      "rate": 0.03,
+      "notes": "3% general rate"
+    },
+    "VIC": {
+      "rate": 0.055,
+      "notes": "5.5% general rate"
+    },
+    "SA": {
+      "rate": 0.04,
+      "notes": "4% general rate"
+    },
+    "WA": {
+      "rate": 0.03,
+      "notes": "3% general rate"
+    },
+    "ACT": {
+      "rate": 0.03,
+      "notes": "3% general rate"
+    },
+    "TAS": {
+      "rate": 0.03,
+      "notes": "3% general rate"
+    },
+    "NT": {
+      "rate": 0.03,
+      "notes": "3% general rate"
+    }
+  }
+}
