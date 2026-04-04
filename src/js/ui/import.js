@@ -192,7 +192,7 @@ var VehicleImport = (function () {
       '<button class="btn btn-secondary btn-full" id="import-url-btn" style="margin-bottom:var(--space-3)">' +
         '&#128279; Paste a Carsales URL' +
       '</button>' +
-      '<button class="btn btn-ghost btn-full" id="import-manual-btn">' +
+      '<button class="btn btn-secondary btn-full" id="import-manual-btn">' +
         '&#9999;&#65039; Enter Details Manually' +
       '</button>' +
     '</div>';
