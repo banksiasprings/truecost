@@ -186,7 +186,7 @@ const Forms = {
 
     const weightSection = needsWeight ? `<div class="form-group"><label class="label" for="f-weight">Tare weight (kg)</label><input type="number" class="input" id="f-weight" value="${v.tarenWeightKg || ''}" placeholder="e.g. 1400" min="500" max="3000"></div>` : '';
 
-    return `<div class="card"><h2 class="card-title">Running Costs</h2>${evRegoNote}${cylSection}${weightSection}<div class="form-group"><label class="label" for="f-rego">Registration ($/year)</label><div class="input-prefix"><span class="prefix-label">$</span><input type="number" class="input" id="f-rego" value="${v.registrationAnnual}" style="padding-left:32px"></div><small style="color:var(--color-text-muted);font-size:var(--font-size-xs);margin-top:4px;display:block">Calculated from cylinders/weight — edit to override</small></div><div class="form-group"><label class="label" for="f-insurance">Insurance ($/year)</label><div class="input-prefix"><span class="prefix-label">$</span><input type="number" class="input" id="f-insurance" value="${v.insuranceAnnual}" style="padding-left:32px"></div></div><div class="form-group"><label class="label" for="f-driver-age">Driver age <span style="font-weight:400;color:var(--color-text-muted);font-size:var(--font-size-xs)">(optional — improves insurance estimate)</span></label><input type="number" class="input" id="f-driver-age" value="${v.driverAge || ''}" placeholder="e.g. 28" min="16" max="99" style="max-width:140px"><small style="color:var(--color-text-muted);font-size:var(--font-size-xs);margin-top:4px;display:block">Not stored beyond this device. Adjusts estimate only.</small></div><div class="form-row"><div class="form-group"><label class="label" for="f-svc-cost">Service cost ($)</label><div class="input-prefix"><span class="prefix-label">$</span><input type="number" class="input" id="f-svc-cost" value="${v.serviceCostPerService}" style="padding-left:32px"></div></div><div class="form-group"><label class="label" for="f-svc-km">Interval (km)</label><input type="number" class="input" id="f-svc-km" value="${v.serviceIntervalKm}" step="1000"></div><div class="form-group"><label class="label" for="f-svc-months">Interval (months)</label><input type="number" class="input" id="f-svc-months" value="${v.serviceIntervalMonths || 12}" min="1" max="36" step="1"><small style="color:var(--color-text-muted);font-size:var(--font-size-xs);margin-top:4px;display:block">Whichever comes first</small></div></div><div class="form-row"><div class="form-group"><label class="label" for="f-tyre-cost">Tyre set cost ($)</label><div class="input-prefix"><span class="prefix-label">$</span><input type="number" class="input" id="f-tyre-cost" value="${v.tyreCostPerSet}" style="padding-left:32px"></div></div><div class="form-group"><label class="label" for="f-tyre-km">Tyre life (km)</label><input type="number" class="input" id="f-tyre-km" value="${v.tyreLifeKm}" step="5000"></div></div></div><div style="display:flex;gap:var(--space-3)"><button class="btn btn-secondary btn-pill" id="step-back">Back</button><button class="btn btn-primary btn-pill" id="step-next" style="flex:1">Continue</button></div>`;
+    return `<div class="card"><h2 class="card-title">Running Costs</h2>${evRegoNote}${cylSection}${weightSection}<div class="form-group"><label class="label" for="f-rego">Registration ($/year)</label><div class="input-prefix"><span class="prefix-label">$</span><input type="number" class="input" id="f-rego" value="${v.registrationAnnual}" style="padding-left:32px"></div><small style="color:var(--color-text-muted);font-size:var(--font-size-xs);margin-top:4px;display:block">Calculated from cylinders/weight — edit to override</small></div><div class="form-group"><label class="label" for="f-insurance">Insurance ($/year)</label><div class="input-prefix"><span class="prefix-label">$</span><input type="number" class="input" id="f-insurance" value="${v.insuranceAnnual}" style="padding-left:32px"></div></div><div class="form-group"><label class="label" for="f-driver-age">Driver age <span style="font-weight:400;color:var(--color-text-muted);font-size:var(--font-size-xs)">(optional — improves insurance estimate)</span></label><input type="number" class="input" id="f-driver-age" value="${v.driverAge || ''}" placeholder="e.g. 28" min="16" max="99" style="max-width:140px"><small style="color:var(--color-text-muted);font-size:var(--font-size-xs);margin-top:4px;display:block">Not stored beyond this device. Adjusts estimate only.</small></div><div class="form-row-3"><div class="form-group"><label class="label" for="f-svc-cost">Service ($)</label><div class="input-prefix"><span class="prefix-label">$</span><input type="number" class="input" id="f-svc-cost" value="${v.serviceCostPerService}" style="padding-left:32px"></div></div><div class="form-group"><label class="label" for="f-svc-km">Every (km)</label><input type="number" class="input" id="f-svc-km" value="${v.serviceIntervalKm}" step="1000"></div><div class="form-group"><label class="label" for="f-svc-months">Every (mo)</label><input type="number" class="input" id="f-svc-months" value="${v.serviceIntervalMonths || 12}" min="1" max="36" step="1"><small style="color:var(--color-text-muted);font-size:var(--font-size-xs);margin-top:4px;display:block">First wins</small></div></div><div class="form-row"><div class="form-group"><label class="label" for="f-tyre-cost">Tyre set cost ($)</label><div class="input-prefix"><span class="prefix-label">$</span><input type="number" class="input" id="f-tyre-cost" value="${v.tyreCostPerSet}" style="padding-left:32px"></div></div><div class="form-group"><label class="label" for="f-tyre-km">Tyre life (km)</label><input type="number" class="input" id="f-tyre-km" value="${v.tyreLifeKm}" step="5000"></div></div></div><div style="display:flex;gap:var(--space-3)"><button class="btn btn-secondary btn-pill" id="step-back">Back</button><button class="btn btn-primary btn-pill" id="step-next" style="flex:1">Continue</button></div>`;
   },
 
   stepFinance() {
@@ -474,16 +474,29 @@ ${fbtNote}
     const container = document.getElementById('vehicle-form-container');
     if (!container) return;
 
+    // Abort any previous swipe listeners — container persists across renderStep()
+    // calls so without this, listeners accumulate and multiple handlers fire per swipe,
+    // corrupting vehicle data by calling collectStep() with stale step numbers.
+    if (this._swipeAbortController) {
+      this._swipeAbortController.abort();
+    }
+    this._swipeAbortController = new AbortController();
+    const signal = this._swipeAbortController.signal;
+
     let touchStartX = 0;
     let touchStartY = 0;
+    let touchStartedOnRange = false;
     const SWIPE_THRESHOLD = 50; // Minimum distance in pixels
 
     const handleTouchStart = (e) => {
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
+      // Don't swipe-navigate when the user is dragging a range input (e.g. PHEV slider)
+      touchStartedOnRange = e.target.type === 'range';
     };
 
     const handleTouchEnd = (e) => {
+      if (touchStartedOnRange) return;
       const touchEndX = e.changedTouches[0].clientX;
       const touchEndY = e.changedTouches[0].clientY;
       const diffX = touchStartX - touchEndX;
@@ -505,8 +518,8 @@ ${fbtNote}
       }
     };
 
-    container.addEventListener('touchstart', handleTouchStart, false);
-    container.addEventListener('touchend', handleTouchEnd, false);
+    container.addEventListener('touchstart', handleTouchStart, { signal });
+    container.addEventListener('touchend', handleTouchEnd, { signal });
   },
 
   collectStep(step) {
