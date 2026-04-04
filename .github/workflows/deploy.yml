@@ -27,6 +27,12 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Auto-bump service worker cache version
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          sed -i "s/const CACHE_NAME = 'truecost-v[^']*'/const CACHE_NAME = 'truecost-${SHORT_SHA}'/" src/sw.js
+          echo "Cache name set to truecost-${SHORT_SHA}"
+
       - name: Upload artifact (src/ directory)
         uses: actions/upload-pages-artifact@v3
         with:
