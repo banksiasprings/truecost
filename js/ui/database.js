@@ -349,20 +349,14 @@ const Database = {
 
   renderQuickStats(container) {
     const stats = this.getStats();
+    const minK = stats.minPrice ? '$' + Math.round(stats.minPrice / 1000) + 'k' : '—';
+    const maxK = stats.maxPrice ? '$' + Math.round(stats.maxPrice / 1000) + 'k' : '—';
     const statsHtml = `
-      <div class="database-quick-stats">
-        <div class="stat-item">
-          <div class="stat-value">${stats.total}</div>
-          <div class="stat-label">Total Vehicles</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">${this.formatPrice(stats.minPrice)} – ${this.formatPrice(stats.maxPrice)}</div>
-          <div class="stat-label">Price Range</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">${stats.evCount}</div>
-          <div class="stat-label">Electric Vehicles</div>
-        </div>
+      <div class="db-stats-row">
+        <div class="db-stat-pill"><span class="db-stat-num">${stats.total}</span><span class="db-stat-lbl">Vehicles</span></div>
+        <div class="db-stat-pill"><span class="db-stat-num">${stats.evCount}</span><span class="db-stat-lbl">Electric</span></div>
+        <div class="db-stat-pill"><span class="db-stat-num">${minK}–${maxK}</span><span class="db-stat-lbl">Price Range</span></div>
+        <div class="db-stat-pill"><span class="db-stat-num">15k</span><span class="db-stat-lbl">km/yr est.</span></div>
       </div>
     `;
     container.insertAdjacentHTML('beforeend', statsHtml);
@@ -651,64 +645,54 @@ const Database = {
     return map[(fuelType || '').toLowerCase()] || '🚗';
   },
 
-  buildVehicleCardHtml(vehicle, idx, dataAttrPrefix, extraHeaderHtml = '') {
+  buildVehicleCardHtml(vehicle, idx, dataAttrPrefix, rankBadgeHtml = '') {
     const annualCost = this.estimateAnnualRunningCost(vehicle);
-    const imgHtml = vehicle.imageUrl
-      ? `<div class="preset-card-img" style="background-image:url('${vehicle.imageUrl}')"></div>`
-      : `<div class="preset-card-img preset-card-img--placeholder"><span class="preset-card-img-icon">${this._fuelEmoji(vehicle.fuelType)}</span></div>`;
+    const fuelBadge = this.getFuelTypeBadgeClass(vehicle.fuelType);
+    const ftLabel = (vehicle.fuelType || 'petrol').charAt(0).toUpperCase() + (vehicle.fuelType || 'petrol').slice(1);
+    const modelVariant = [vehicle.model, vehicle.variant].filter(Boolean).join(' — ');
+    const carsalesUrl = `https://www.carsales.com.au/cars/?q=(And.(C.Make.${encodeURIComponent(vehicle.make || '')}.(C.Model.${encodeURIComponent(vehicle.model || '')}.)).)&utm_source=truecost-pro&utm_medium=referral&utm_campaign=database`;
+
+    const imgSection = vehicle.imageUrl
+      ? `<div class="vehicle-card-img">
+           <img src="${vehicle.imageUrl}" alt="${vehicle.make} ${vehicle.model}" loading="lazy">
+           <div class="vehicle-card-img-gradient"></div>
+           <span class="badge ${fuelBadge} vehicle-card-fuel-badge">${ftLabel}</span>
+           ${rankBadgeHtml}
+         </div>`
+      : `<div class="vehicle-card-img">
+           <div class="vehicle-card-img-placeholder">${this._fuelEmoji(vehicle.fuelType)}</div>
+           <div class="vehicle-card-img-gradient"></div>
+           <span class="badge ${fuelBadge} vehicle-card-fuel-badge">${ftLabel}</span>
+           ${rankBadgeHtml}
+         </div>`;
+
     return `
-      <div class="vehicle-card card">
-        ${imgHtml}
-        <div class="card-header">
-          <div class="vehicle-title">
-            ${extraHeaderHtml}
-            <div class="vehicle-year">${vehicle.year || 'N/A'}</div>
-            <div class="vehicle-name">${vehicle.make || ''} ${vehicle.model || ''}</div>
-          </div>
-          <div class="vehicle-badge">
-            <span class="badge ${this.getFuelTypeBadgeClass(vehicle.fuelType)}">
-              ${vehicle.fuelType || 'Petrol'}
-            </span>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div class="vehicle-variant">${vehicle.variant || ''}</div>
-
-          <div class="vehicle-specs">
-            <div class="spec-item">
-              <span class="spec-label">Price</span>
-              <span class="spec-value">${this.formatPrice(vehicle.purchasePrice)}</span>
+      <div class="vehicle-card-pro" data-${dataAttrPrefix}-index="${idx}">
+        ${imgSection}
+        <div class="vehicle-card-body">
+          <div class="vehicle-card-make">${vehicle.make || ''}</div>
+          <div class="vehicle-card-model">${modelVariant || (vehicle.year || '')}</div>
+          <div class="vehicle-card-stats">
+            <div class="vehicle-stat">
+              <div class="vehicle-stat-value">${vehicle.purchasePrice ? this.formatPrice(vehicle.purchasePrice) : '—'}</div>
+              <div class="vehicle-stat-label">Purchase</div>
             </div>
-            <div class="spec-item">
-              <span class="spec-label">${vehicle.fuelType === 'electric' ? 'Range' : 'Consumption'}</span>
-              <span class="spec-value">${this.formatConsumption(vehicle)}</span>
-            </div>
-            <div class="spec-item spec-item-wide">
-              <span class="spec-label">Est. running cost</span>
-              <span class="spec-value spec-value-cost">${this.formatPrice(annualCost)}/yr <span class="cost-per-km">$${(annualCost / 15000).toFixed(2)}/km</span></span>
+            <div class="vehicle-stat">
+              <div class="vehicle-stat-value">${this.formatPrice(annualCost)}/yr</div>
+              <div class="vehicle-stat-label">Running Cost</div>
             </div>
           </div>
-        </div>
-
-        <div class="card-footer">
-          <button
-            class="btn btn-secondary btn-pill btn-sm ${dataAttrPrefix}-add-compare"
-            data-${dataAttrPrefix}-index="${idx}"
-          >
-            Add to Compare
-          </button>
-          <button
-            class="btn btn-ghost btn-pill btn-sm ${dataAttrPrefix}-view-details"
-            data-${dataAttrPrefix}-index="${idx}"
-          >
-            View Details
-          </button>
-          <a class="btn btn-ghost btn-sm"
-             href="https://www.carsales.com.au/cars/?q=(And.(C.Make.${encodeURIComponent(vehicle.make || '')}.(C.Model.${encodeURIComponent(vehicle.model || '')}.)).)&utm_source=truecost-pro&utm_medium=referral&utm_campaign=database"
-             target="_blank" rel="noopener">
-            🔍 Carsales
-          </a>
+          <div class="vehicle-card-actions">
+            <button class="btn btn-secondary btn-sm btn-pill ${dataAttrPrefix}-add-compare" data-${dataAttrPrefix}-index="${idx}" style="flex:1">
+              + Compare
+            </button>
+            <button class="btn btn-primary btn-sm btn-pill ${dataAttrPrefix}-view-details" data-${dataAttrPrefix}-index="${idx}" style="flex:1">
+              Details
+            </button>
+            <a class="btn btn-ghost btn-sm" href="${carsalesUrl}" target="_blank" rel="noopener" style="flex-shrink:0;padding:6px 10px" title="View on Carsales">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
+          </div>
         </div>
       </div>
     `;
@@ -718,22 +702,20 @@ const Database = {
     const top3 = this.state.topThree;
     if (top3.length === 0) return;
 
-    const medals = ['🥇', '🥈', '🥉'];
-    const rankLabels = ['1st', '2nd', '3rd'];
+    const rankBadges = [
+      '<span class="vehicle-card-rank-badge">⭐ Best Value</span>',
+      '<span class="vehicle-card-rank-badge" style="background:rgba(156,163,175,0.9);color:#fff">#2</span>',
+      '<span class="vehicle-card-rank-badge" style="background:rgba(180,130,80,0.9);color:#fff">#3</span>',
+    ];
 
     const sectionHtml = `
       <div class="top3-section">
         <div class="top3-header">
-          <span class="top3-title">🏆 Top ${top3.length} Lowest Running Cost</span>
+          <span class="top3-title">⭐ Lowest Running Cost</span>
           <span class="top3-subtitle">Est. at 15,000 km/yr · fuel + servicing + tyres + insurance</span>
         </div>
         <div class="top3-grid">
-          ${top3.map((vehicle, idx) => `
-            <div class="top3-card-wrap">
-              <div class="rank-badge rank-${idx + 1}">${medals[idx]} ${rankLabels[idx]}</div>
-              ${this.buildVehicleCardHtml(vehicle, idx, 'top3')}
-            </div>
-          `).join('')}
+          ${top3.map((vehicle, idx) => this.buildVehicleCardHtml(vehicle, idx, 'top3', rankBadges[idx])).join('')}
         </div>
       </div>
     `;
@@ -741,15 +723,26 @@ const Database = {
 
     container.querySelectorAll('.top3-add-compare').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const idx = parseInt(e.target.dataset.top3Index);
+        e.stopPropagation();
+        const idx = parseInt(btn.dataset.top3Index);
         this.handleAddToCompare(this.state.topThree[idx]);
       });
     });
 
     container.querySelectorAll('.top3-view-details').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const idx = parseInt(e.target.dataset.top3Index);
+        e.stopPropagation();
+        const idx = parseInt(btn.dataset.top3Index);
         this.handleViewDetails(this.state.topThree[idx]);
+      });
+    });
+
+    // Card tap → view details
+    container.querySelectorAll('.top3-section .vehicle-card-pro').forEach((card) => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('button') || e.target.closest('a')) return;
+        const idx = parseInt(card.dataset.top3Index);
+        if (!isNaN(idx)) this.handleViewDetails(this.state.topThree[idx]);
       });
     });
   },
@@ -758,12 +751,11 @@ const Database = {
     const remaining = this.state.remainingVehicles;
 
     if (this.state.filteredVehicles.length === 0) {
-      const emptyHtml = `
+      container.insertAdjacentHTML('beforeend', `
         <div class="database-empty">
-          <p>No vehicles found. Try adjusting your filters.</p>
+          <p style="color:var(--color-text-muted);padding:32px 0;text-align:center">No vehicles found. Try adjusting your filters.</p>
         </div>
-      `;
-      container.insertAdjacentHTML('beforeend', emptyHtml);
+      `);
       return;
     }
 
@@ -771,7 +763,7 @@ const Database = {
 
     const sectionHtml = `
       <div class="remaining-section">
-        <div class="remaining-header">All results</div>
+        <div class="remaining-header">All vehicles</div>
         <div class="database-grid">
           ${remaining.map((vehicle, idx) => this.buildVehicleCardHtml(vehicle, idx, 'preset')).join('')}
         </div>
@@ -781,15 +773,26 @@ const Database = {
 
     container.querySelectorAll('.preset-add-compare').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const idx = parseInt(e.target.dataset.presetIndex);
+        e.stopPropagation();
+        const idx = parseInt(btn.dataset.presetIndex);
         this.handleAddToCompare(this.state.remainingVehicles[idx]);
       });
     });
 
     container.querySelectorAll('.preset-view-details').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const idx = parseInt(e.target.dataset.presetIndex);
+        e.stopPropagation();
+        const idx = parseInt(btn.dataset.presetIndex);
         this.handleViewDetails(this.state.remainingVehicles[idx]);
+      });
+    });
+
+    // Card tap → view details
+    container.querySelectorAll('.remaining-section .vehicle-card-pro').forEach((card) => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('button') || e.target.closest('a')) return;
+        const idx = parseInt(card.dataset.presetIndex);
+        if (!isNaN(idx)) this.handleViewDetails(this.state.remainingVehicles[idx]);
       });
     });
   },
@@ -804,21 +807,35 @@ const Database = {
     container.innerHTML = '';
     container.classList.add('database-view');
 
-    // Partners banner
+    // Hero section with title
     container.insertAdjacentHTML('beforeend', `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f8fafc;border-radius:8px;margin-bottom:12px;font-size:0.75rem;color:#6b7280">
-        <span>Live listings powered by</span>
-        <a href="https://www.carsales.com.au?utm_source=truecost-pro&utm_medium=referral" target="_blank" rel="noopener" style="color:#0066cc;font-weight:600;text-decoration:none">carsales.com.au ↗</a>
+      <div class="db-hero">
+        <h1 class="db-hero-title">Find Your Car</h1>
+        <p class="db-hero-sub">Compare total ownership costs across 200+ Australian vehicles</p>
       </div>
     `);
 
-    // Render sections in order
+    // Stats pills
     this.renderQuickStats(container);
+
+    // Search bar
     this.renderSearchBar(container);
+
+    // Partner banner
+    container.insertAdjacentHTML('beforeend', `
+      <div class="partner-banner">
+        <span>Live listings on</span>
+        <a href="https://www.carsales.com.au?utm_source=truecost-pro&utm_medium=referral" target="_blank" rel="noopener">carsales.com.au ↗</a>
+      </div>
+    `);
+
+    // Filters row
     this.renderFuelTypeFilters(container);
     this.renderCategoryTabs(container);
     this.renderSortDropdown(container);
     this.renderResultsHeader(container);
+
+    // Cards
     this.renderTopThree(container);
     this.renderVehicleCards(container);
 
@@ -827,48 +844,19 @@ const Database = {
   },
 
   injectStyles() {
-    // Check if styles already injected
-    if (document.querySelector('#database-styles')) {
-      return;
-    }
+    // Remove old styles if present (force refresh on re-render)
+    document.querySelector('#database-styles')?.remove();
 
     const styleEl = document.createElement('style');
     styleEl.id = 'database-styles';
     styleEl.textContent = `
       .database-view {
-        padding: var(--space-4, 1.5rem);
-        max-width: 1200px;
-        margin: 0 auto;
+        padding: 0;
       }
 
-      .database-quick-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: var(--space-3, 1rem);
-        margin-bottom: var(--space-5, 2rem);
-        padding: var(--space-4, 1.5rem);
-        background: var(--color-bg-subtle, #f8f9fa);
-        border-radius: var(--radius-lg, 12px);
-      }
-
-      .stat-item {
-        text-align: center;
-      }
-
-      .stat-value {
-        font-size: var(--font-size-base, 1rem);
-        font-weight: 600;
-        color: var(--color-primary, #0066cc);
-        margin-bottom: var(--space-1, 0.25rem);
-      }
-
-      .stat-label {
-        font-size: var(--font-size-xs, 0.75rem);
-        color: var(--color-text-muted, #6b7280);
-      }
-
+      /* ── Search bar ── */
       .database-search {
-        margin-bottom: var(--space-4, 1.5rem);
+        margin-bottom: 14px;
         position: relative;
       }
 
@@ -880,23 +868,25 @@ const Database = {
 
       .database-search-input {
         flex: 1;
-        padding: var(--space-3, 1rem);
-        font-size: var(--font-size-base, 1rem);
-        border: 1px solid var(--color-border, #e5e7eb);
-        border-radius: var(--radius-md, 8px);
-        background: var(--color-surface, #ffffff);
-        color: var(--color-text, #1f2937);
+        padding: 12px 16px;
+        font-size: 15px;
+        font-family: var(--font-family);
+        border: 1.5px solid var(--color-border);
+        border-radius: var(--radius-md);
+        background: var(--color-surface-2);
+        color: var(--color-text);
         box-sizing: border-box;
+        outline: none;
+        transition: border-color 0.15s;
       }
 
       .database-search-input::placeholder {
-        color: var(--color-text-muted, #6b7280);
+        color: var(--color-text-subtle);
       }
 
       .database-search-input:focus {
-        outline: none;
-        border-color: var(--color-primary, #0066cc);
-        box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        border-color: var(--color-border-focus);
+        box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
       }
 
       /* Mic button */
@@ -905,9 +895,9 @@ const Database = {
         width: 44px;
         height: 44px;
         border-radius: 50%;
-        border: 1.5px solid var(--color-border, #e5e7eb);
-        background: var(--color-surface, #fff);
-        color: var(--color-text-muted, #6b7280);
+        border: 1.5px solid var(--color-border);
+        background: var(--color-surface-2);
+        color: var(--color-text-muted);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -915,13 +905,13 @@ const Database = {
         transition: border-color 0.15s, color 0.15s, background 0.15s;
       }
       .db-mic-btn:hover {
-        border-color: var(--color-primary, #0066cc);
-        color: var(--color-primary, #0066cc);
+        border-color: var(--color-primary);
+        color: var(--color-primary);
       }
       .db-mic-btn.listening {
-        border-color: #ef4444;
-        color: #ef4444;
-        background: #fff5f5;
+        border-color: var(--color-error);
+        color: var(--color-error);
+        background: var(--color-error-light);
         animation: mic-pulse 1s ease-in-out infinite;
       }
       @keyframes mic-pulse {
@@ -932,39 +922,43 @@ const Database = {
       /* Suggested search chips */
       .db-search-chips {
         display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
+        gap: 6px;
+        overflow-x: auto;
+        scrollbar-width: none;
         margin-top: 10px;
+        padding-bottom: 2px;
       }
+      .db-search-chips::-webkit-scrollbar { display: none; }
       .db-search-chip {
-        padding: 6px 12px;
+        padding: 5px 12px;
         border-radius: 9999px;
-        border: 1.5px solid var(--color-border, #e5e7eb);
-        background: var(--color-surface, #fff);
-        color: var(--color-text-muted, #6b7280);
-        font-size: var(--font-size-xs, 0.75rem);
+        border: 1px solid var(--color-border);
+        background: var(--color-surface-2);
+        color: var(--color-text-muted);
+        font-family: var(--font-family);
+        font-size: 11px;
         font-weight: 500;
         cursor: pointer;
         white-space: nowrap;
         transition: border-color 0.15s, color 0.15s, background 0.15s;
+        -webkit-tap-highlight-color: transparent;
       }
       .db-search-chip:hover {
-        border-color: var(--color-primary, #0066cc);
-        color: var(--color-primary, #0066cc);
-        background: var(--color-primary-light, #f0f7ff);
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+        background: var(--color-primary-light);
       }
 
       /* Autocomplete suggestions dropdown */
-
       #db-suggestions {
         position: absolute;
         top: calc(100% + 4px);
         left: 0;
         right: 0;
-        background: var(--color-surface, #ffffff);
-        border: 1px solid var(--color-border, #e5e7eb);
-        border-radius: var(--radius-md, 8px);
-        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        background: var(--color-surface-3);
+        border: 1px solid var(--color-border-strong);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
         list-style: none;
         margin: 0;
         padding: 4px 0;
@@ -972,7 +966,6 @@ const Database = {
         max-height: 320px;
         overflow-y: auto;
       }
-
       .db-suggestion-item {
         display: flex;
         align-items: center;
@@ -981,467 +974,88 @@ const Database = {
         cursor: pointer;
         transition: background 0.1s;
       }
-
       .db-suggestion-item:hover,
-      .db-suggestion-item.focused {
-        background: var(--color-primary-light, #f0f7ff);
-      }
+      .db-suggestion-item.focused { background: var(--color-surface-2); }
+      .db-sug-icon { font-size: 1.1rem; flex-shrink: 0; width: 24px; text-align: center; }
+      .db-sug-text { display: flex; flex-direction: column; min-width: 0; }
+      .db-sug-name { font-size: 13px; font-weight: 600; color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .db-sug-sub  { font-size: 11px; color: var(--color-text-muted); margin-top: 1px; }
 
-      .db-sug-icon {
-        font-size: 1.25rem;
-        flex-shrink: 0;
-        width: 28px;
-        text-align: center;
-      }
-
-      .db-sug-text {
-        display: flex;
-        flex-direction: column;
-        min-width: 0;
-      }
-
-      .db-sug-name {
-        font-size: var(--font-size-sm, 0.875rem);
-        font-weight: 600;
-        color: var(--color-text, #1f2937);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .db-sug-sub {
-        font-size: var(--font-size-xs, 0.75rem);
-        color: var(--color-text-muted, #6b7280);
-        margin-top: 1px;
-      }
-
-      .database-filters {
-        margin-bottom: var(--space-4, 1.5rem);
-      }
-
-      .filter-group {
-        margin-bottom: var(--space-3, 1rem);
-      }
-
-      .filter-label {
-        display: block;
-        font-size: var(--font-size-sm, 0.875rem);
-        font-weight: 500;
-        color: var(--color-text, #1f2937);
-        margin-bottom: var(--space-2, 0.5rem);
-      }
-
-      .filter-chips {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--space-2, 0.5rem);
-      }
-
+      /* ── Filters ── */
+      .database-filters { margin-bottom: 12px; }
+      .filter-group { margin-bottom: 8px; }
+      .filter-label { display: block; font-size: 11px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
+      .filter-chips { display: flex; flex-wrap: nowrap; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+      .filter-chips::-webkit-scrollbar { display: none; }
       .filter-chip {
-        padding: var(--space-2, 0.5rem) var(--space-3, 1rem);
-        font-size: var(--font-size-sm, 0.875rem);
-        border: 1px solid var(--color-border, #e5e7eb);
-        border-radius: 20px;
-        background: var(--color-surface, #ffffff);
-        color: var(--color-text, #1f2937);
-        cursor: pointer;
-        transition: all 0.2s ease;
+        padding: 5px 12px; font-size: 12px; font-family: var(--font-family);
+        border: 1px solid var(--color-border); border-radius: 9999px;
+        background: var(--color-surface-2); color: var(--color-text-muted);
+        cursor: pointer; transition: all 0.15s ease; white-space: nowrap;
+        -webkit-tap-highlight-color: transparent;
       }
+      .filter-chip:hover { border-color: var(--color-border-strong); color: var(--color-text); }
+      .filter-chip.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); font-weight: 600; }
 
-      .filter-chip:hover {
-        background: var(--color-bg-subtle, #f8f9fa);
-      }
-
-      .filter-chip.active {
-        background: var(--color-primary, #0066cc);
-        color: white;
-        border-color: var(--color-primary, #0066cc);
-      }
-
-      .database-category-tabs {
-        margin-bottom: var(--space-4, 1.5rem);
-        overflow-x: auto;
-      }
-
-      .tabs-scroll {
-        display: flex;
-        gap: var(--space-2, 0.5rem);
-        padding-bottom: var(--space-2, 0.5rem);
-      }
-
+      /* ── Category tabs ── */
+      .database-category-tabs { margin-bottom: 12px; }
+      .tabs-scroll { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+      .tabs-scroll::-webkit-scrollbar { display: none; }
       .category-tab {
-        padding: var(--space-2, 0.5rem) var(--space-3, 1rem);
-        font-size: var(--font-size-sm, 0.875rem);
-        border: none;
-        border-bottom: 2px solid transparent;
-        background: transparent;
-        color: var(--color-text-muted, #6b7280);
-        cursor: pointer;
-        transition: all 0.2s ease;
-        white-space: nowrap;
+        padding: 5px 12px; font-size: 12px; font-family: var(--font-family);
+        border: 1px solid var(--color-border); border-radius: 9999px;
+        background: var(--color-surface-2); color: var(--color-text-muted);
+        cursor: pointer; transition: all 0.15s; white-space: nowrap;
+        -webkit-tap-highlight-color: transparent;
       }
+      .category-tab:hover { color: var(--color-text); border-color: var(--color-border-strong); }
+      .category-tab.active { color: var(--color-primary); border-color: var(--color-primary); background: var(--color-primary-light); font-weight: 600; }
 
-      .category-tab:hover {
-        color: var(--color-text, #1f2937);
-      }
-
-      .category-tab.active {
-        color: var(--color-primary, #0066cc);
-        border-bottom-color: var(--color-primary, #0066cc);
-      }
-
-      .database-sort {
-        margin-bottom: var(--space-4, 1.5rem);
-        display: flex;
-        align-items: center;
-        gap: var(--space-2, 0.5rem);
-      }
-
-      .database-sort label {
-        font-size: var(--font-size-sm, 0.875rem);
-        color: var(--color-text, #1f2937);
-        font-weight: 500;
-      }
-
+      /* ── Sort ── */
+      .database-sort { margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+      .database-sort label { font-size: 11px; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.07em; white-space: nowrap; }
       .sort-select {
-        padding: var(--space-2, 0.5rem) var(--space-3, 1rem);
-        font-size: var(--font-size-sm, 0.875rem);
-        border: 1px solid var(--color-border, #e5e7eb);
-        border-radius: var(--radius-md, 8px);
-        background: var(--color-surface, #ffffff);
-        color: var(--color-text, #1f2937);
-        cursor: pointer;
+        padding: 5px 10px; font-size: 12px; font-family: var(--font-family);
+        border: 1px solid var(--color-border); border-radius: var(--radius-md);
+        background: var(--color-surface-2); color: var(--color-text); cursor: pointer; outline: none;
       }
+      .sort-select:focus { border-color: var(--color-primary); }
 
-      .sort-select:focus {
-        outline: none;
-        border-color: var(--color-primary, #0066cc);
-      }
-
-      .database-results-header {
-        margin-bottom: var(--space-4, 1.5rem);
-        padding: var(--space-2, 0.5rem) 0;
-        border-bottom: 1px solid var(--color-border, #e5e7eb);
-      }
-
-      .results-count {
-        font-size: var(--font-size-sm, 0.875rem);
-        color: var(--color-text-muted, #6b7280);
-      }
-
-      .database-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: var(--space-4, 1.5rem);
-        margin-bottom: var(--space-6, 2.5rem);
-      }
-
-      @media (max-width: 768px) {
-        .database-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .database-quick-stats {
-          grid-template-columns: 1fr;
-        }
-
-        .database-view {
-          padding: var(--space-3, 1rem);
-        }
-
-        .tabs-scroll {
-          flex-wrap: wrap;
-        }
-      }
-
-      .vehicle-card {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        background: var(--color-bg-card, #ffffff);
-        border: 1px solid var(--color-border, #e5e7eb);
-        border-radius: var(--radius-lg, 12px);
-        overflow: hidden;
-        transition: all 0.2s ease;
-      }
-
-      .vehicle-card:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      }
-
-      .card-header {
-        padding: var(--space-4, 1.5rem);
-        border-bottom: 1px solid var(--color-border, #e5e7eb);
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: var(--space-2, 0.5rem);
-      }
-
-      .vehicle-title {
-        flex: 1;
-      }
-
-      .vehicle-year {
-        font-size: var(--font-size-xs, 0.75rem);
-        color: var(--color-text-muted, #6b7280);
-        margin-bottom: var(--space-1, 0.25rem);
-      }
-
-      .vehicle-name {
-        font-size: var(--font-size-base, 1rem);
-        font-weight: 600;
-        color: var(--color-text, #1f2937);
-      }
-
-      .vehicle-badge {
-        flex-shrink: 0;
-      }
-
-      .badge {
-        display: inline-block;
-        padding: var(--space-1, 0.25rem) var(--space-2, 0.5rem);
-        font-size: var(--font-size-xs, 0.75rem);
-        font-weight: 500;
-        border-radius: 4px;
-      }
-
-      .badge-petrol {
-        background-color: #fef3c7;
-        color: #92400e;
-      }
-
-      .badge-diesel {
-        background-color: #dbeafe;
-        color: #0c4a6e;
-      }
-
-      .badge-hybrid {
-        background-color: #d1fae5;
-        color: #065f46;
-      }
-
-      .badge-ev {
-        background-color: #c7d2fe;
-        color: #312e81;
-      }
-
-      .card-body {
-        padding: var(--space-4, 1.5rem);
-        flex: 1;
-      }
-
-      .vehicle-variant {
-        font-size: var(--font-size-sm, 0.875rem);
-        color: var(--color-text-secondary, #4b5563);
-        margin-bottom: var(--space-3, 1rem);
-      }
-
-      .vehicle-specs {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: var(--space-3, 1rem);
-      }
-
-      .spec-item {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .spec-label {
-        font-size: var(--font-size-xs, 0.75rem);
-        color: var(--color-text-muted, #6b7280);
-        margin-bottom: var(--space-1, 0.25rem);
-      }
-
-      .spec-value {
-        font-size: var(--font-size-base, 1rem);
-        font-weight: 600;
-        color: var(--color-text, #1f2937);
-      }
-
-      .card-footer {
-        padding: var(--space-4, 1.5rem);
-        border-top: 1px solid var(--color-border, #e5e7eb);
-        display: flex;
-        gap: var(--space-2, 0.5rem);
-      }
-
-      .btn {
-        padding: var(--space-2, 0.5rem) var(--space-3, 1rem);
-        font-size: var(--font-size-sm, 0.875rem);
-        border: none;
-        border-radius: var(--radius-md, 8px);
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        flex: 1;
-      }
-
-      .btn-pill {
-        border-radius: 20px;
-      }
-
-      .btn-sm {
-        padding: var(--space-2, 0.5rem) var(--space-3, 1rem);
-        font-size: var(--font-size-xs, 0.75rem);
-      }
-
-      .btn-primary {
-        background: var(--color-primary, #0066cc);
-        color: white;
-      }
-
-      .btn-primary:hover {
-        opacity: 0.9;
-      }
-
-      .btn-secondary {
-        background: var(--color-bg-subtle, #f8f9fa);
-        color: var(--color-text, #1f2937);
-        border: 1px solid var(--color-border, #e5e7eb);
-      }
-
-      .btn-secondary:hover {
-        background: var(--color-bg-secondary, #f3f4f6);
-      }
-
-      .btn-ghost {
-        background: transparent;
-        color: var(--color-primary, #0066cc);
-        border: 1px solid var(--color-primary, #0066cc);
-      }
-
-      .btn-ghost:hover {
-        background: rgba(0, 102, 204, 0.05);
-      }
-
-      .database-empty {
-        padding: var(--space-6, 2.5rem) var(--space-4, 1.5rem);
-        text-align: center;
-        color: var(--color-text-muted, #6b7280);
-        background: var(--color-bg-subtle, #f8f9fa);
-        border-radius: var(--radius-lg, 12px);
-      }
-
-      .database-empty p {
-        margin: 0;
-        font-size: var(--font-size-base, 1rem);
-      }
+      /* ── Results header ── */
+      .database-results-header { margin-bottom: 12px; padding: 4px 0; border-bottom: 1px solid var(--color-border); }
+      .results-count { font-size: 11px; color: var(--color-text-muted); font-weight: 500; }
 
       /* ── Top 3 section ── */
       .top3-section {
-        margin-bottom: var(--space-5, 2rem);
-        padding: var(--space-4, 1.5rem);
-        background: linear-gradient(135deg, #fef9ec 0%, #f0fdf4 100%);
-        border: 1px solid #d4edda;
-        border-radius: var(--radius-lg, 12px);
+        margin-bottom: 20px;
+        padding: 16px;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-card);
       }
-
       .top3-header {
-        display: flex;
-        align-items: baseline;
-        flex-wrap: wrap;
-        gap: var(--space-2, 0.5rem);
-        margin-bottom: var(--space-4, 1.5rem);
+        display: flex; align-items: baseline; flex-wrap: wrap;
+        gap: 8px; margin-bottom: 14px;
       }
+      .top3-title { font-size: 14px; font-weight: 700; color: var(--color-text); }
+      .top3-subtitle { font-size: 11px; color: var(--color-text-muted); }
+      .top3-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
 
-      .top3-title {
-        font-size: var(--font-size-base, 1rem);
-        font-weight: 700;
-        color: var(--color-text, #1f2937);
-      }
-
-      .top3-subtitle {
-        font-size: var(--font-size-xs, 0.75rem);
-        color: var(--color-text-muted, #6b7280);
-      }
-
-      .top3-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: var(--space-3, 1rem);
-      }
-
-      @media (max-width: 900px) {
-        .top3-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      .top3-card-wrap {
-        position: relative;
-        padding-top: var(--space-4, 1.5rem);
-      }
-
-      .rank-badge {
-        position: absolute;
-        top: 0;
-        left: var(--space-3, 1rem);
-        font-size: var(--font-size-xs, 0.75rem);
-        font-weight: 700;
-        padding: 2px 10px;
-        border-radius: 999px;
-        color: white;
-        z-index: 1;
-      }
-
-      .rank-1 { background: #D97706; }
-      .rank-2 { background: #6B7280; }
-      .rank-3 { background: #92400E; }
-
-      .spec-item-wide {
-        grid-column: 1 / -1;
-      }
-
-      .spec-value-cost {
-        color: #15803D;
-      }
-
-      .cost-per-km {
-        font-size: var(--font-size-xs, 0.75rem);
-        font-weight: 400;
-        color: var(--color-text-muted, #6b7280);
-        margin-left: 4px;
-      }
-
-      /* ── Remaining vehicles section ── */
-      .remaining-section {
-        margin-bottom: var(--space-6, 2.5rem);
-      }
-
+      /* ── Remaining section ── */
+      .remaining-section { margin-bottom: 32px; }
       .remaining-header {
-        font-size: var(--font-size-sm, 0.875rem);
-        font-weight: 600;
-        color: var(--color-text-muted, #6b7280);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: var(--space-3, 1rem);
-        padding-bottom: var(--space-2, 0.5rem);
-        border-bottom: 1px solid var(--color-border, #e5e7eb);
+        font-size: 11px; font-weight: 700; color: var(--color-text-muted);
+        text-transform: uppercase; letter-spacing: 0.07em;
+        margin-bottom: 12px; padding-bottom: 8px;
+        border-bottom: 1px solid var(--color-border);
       }
 
-      /* ── Vehicle glamour shots ── */
-      .preset-card-img {
-        width: 100%;
-        height: 160px;
-        background-size: cover;
-        background-position: center;
-        border-radius: 10px 10px 0 0;
-        background-color: #f1f5f9;
-        flex-shrink: 0;
-      }
-      .preset-card-img--placeholder {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 3rem;
-      }
-      .preset-card-img-icon {
-        line-height: 1;
+      /* ── Vehicle grid ── */
+      .database-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 32px;
       }
     `;
 
