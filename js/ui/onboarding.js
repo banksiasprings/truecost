@@ -3,8 +3,8 @@
 // market research data (sent to Formspree) and personalise the database
 // filter for the user's first session.
 
-const ONBOARDING_KEY      = 'truecost_onboarded';
-const FORMSPREE_ENDPOINT  = 'https://formspree.io/f/xkopqeny';
+const ONBOARDING_KEY = 'truecost_onboarded';
+// FORMSPREE_ENDPOINT is declared in feedback.js (loaded before this file)
 
 const Onboarding = {
   _step:    0,

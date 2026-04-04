@@ -652,15 +652,10 @@ const Database = {
     const modelVariant = [vehicle.model, vehicle.variant].filter(Boolean).join(' — ');
     const carsalesUrl = `https://www.carsales.com.au/cars/?q=(And.(C.Make.${encodeURIComponent(vehicle.make || '')}.(C.Model.${encodeURIComponent(vehicle.model || '')}.)).)&utm_source=truecost-pro&utm_medium=referral&utm_campaign=database`;
 
-    const imgSection = vehicle.imageUrl
-      ? `<div class="vehicle-card-img">
-           <img src="${vehicle.imageUrl}" alt="${vehicle.make} ${vehicle.model}" loading="lazy">
-           <div class="vehicle-card-img-gradient"></div>
-           <span class="badge ${fuelBadge} vehicle-card-fuel-badge">${ftLabel}</span>
-           ${rankBadgeHtml}
-         </div>`
-      : `<div class="vehicle-card-img">
-           <div class="vehicle-card-img-placeholder">${this._fuelEmoji(vehicle.fuelType)}</div>
+    const emoji = this._fuelEmoji(vehicle.fuelType);
+    const imgSection = `<div class="vehicle-card-img">
+           <div class="vehicle-card-img-placeholder">${emoji}</div>
+           ${vehicle.imageUrl ? `<img src="${vehicle.imageUrl}" alt="${vehicle.make} ${vehicle.model}" loading="lazy" onerror="this.style.display='none'">` : ''}
            <div class="vehicle-card-img-gradient"></div>
            <span class="badge ${fuelBadge} vehicle-card-fuel-badge">${ftLabel}</span>
            ${rankBadgeHtml}
