@@ -18,6 +18,63 @@
   <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
+
+<!-- ── App loading splash — fades out once JS initialises ── -->
+<div id="app-splash">
+  <img src="assets/icons/icon-192.png" alt="TrueCost" id="app-splash-icon">
+  <div id="app-splash-name">TrueCost</div>
+  <div id="app-splash-spinner"></div>
+</div>
+
+<style>
+  #app-splash {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #08101E;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    transition: opacity 0.4s ease;
+  }
+  #app-splash.fade-out {
+    opacity: 0;
+    pointer-events: none;
+  }
+  #app-splash-icon {
+    width: 96px;
+    height: 96px;
+    border-radius: 22px;
+    animation: splash-pop 0.5s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  @keyframes splash-pop {
+    from { transform: scale(0.7); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  #app-splash-name {
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    opacity: 0.9;
+  }
+  #app-splash-spinner {
+    width: 28px;
+    height: 28px;
+    border: 2.5px solid rgba(255,255,255,0.15);
+    border-top-color: #4ade80;
+    border-radius: 50%;
+    animation: splash-spin 0.75s linear infinite;
+    margin-top: 8px;
+  }
+  @keyframes splash-spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
+
 <div id="app">
 
   <!-- ── Hero banner ── -->
@@ -289,27 +346,27 @@
 
 <!-- Scripts (module order matters) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" crossorigin="anonymous"></script>
-    <script src="js/data/australia.js?v=51"></script>
-<script src="js/data/defaults.js?v=51"></script>
-<script src="js/data/model.js?v=51"></script>
-<script src="js/data/storage.js?v=51"></script>
-<script src="js/data/rates-manager.js?v=51"></script>
-<script src="js/calc/depreciation.js?v=51"></script>
-<script src="js/calc/fuel.js?v=51"></script>
-<script src="js/calc/battery.js?v=51"></script>
-<script src="js/calc/registration.js?v=51"></script>
-<script src="js/calc/insurance.js?v=51"></script>
-<script src="js/calc/engine.js?v=51"></script>
-<script src="js/ui/router.js?v=51"></script>
-<script src="data/vehicles.js?v=51"></script>
-<script src="js/ui/import.js?v=51"></script><script src="js/ui/forms.js?v=51"></script>
-<script src="js/ui/detail.js?v=51"></script>
-<script src="js/ui/vehicle-card.js?v=51"></script>
-<script src="js/ui/comparison.js?v=51"></script>
-<script src="js/ui/database.js?v=51"></script>
-<script src="js/ui/feedback.js?v=51"></script>
-<script src="js/ui/onboarding.js?v=51"></script>
-<script src="js/ui/app.js?v=51"></script>
+    <script src="js/data/australia.js?v=52"></script>
+<script src="js/data/defaults.js?v=52"></script>
+<script src="js/data/model.js?v=52"></script>
+<script src="js/data/storage.js?v=52"></script>
+<script src="js/data/rates-manager.js?v=52"></script>
+<script src="js/calc/depreciation.js?v=52"></script>
+<script src="js/calc/fuel.js?v=52"></script>
+<script src="js/calc/battery.js?v=52"></script>
+<script src="js/calc/registration.js?v=52"></script>
+<script src="js/calc/insurance.js?v=52"></script>
+<script src="js/calc/engine.js?v=52"></script>
+<script src="js/ui/router.js?v=52"></script>
+<script src="data/vehicles.js?v=52"></script>
+<script src="js/ui/import.js?v=52"></script><script src="js/ui/forms.js?v=52"></script>
+<script src="js/ui/detail.js?v=52"></script>
+<script src="js/ui/vehicle-card.js?v=52"></script>
+<script src="js/ui/comparison.js?v=52"></script>
+<script src="js/ui/database.js?v=52"></script>
+<script src="js/ui/feedback.js?v=52"></script>
+<script src="js/ui/onboarding.js?v=52"></script>
+<script src="js/ui/app.js?v=52"></script>
 
 <script>
   // Capture PWA install prompt as early as possible for onboarding

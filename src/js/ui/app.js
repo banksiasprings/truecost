@@ -89,6 +89,13 @@ const App = {
     const isOnboarding = window.Onboarding && Onboarding.maybeShow();
     if (!isOnboarding) Router.navigate("vehicles");
 
+    // Dismiss loading splash
+    const splash = document.getElementById('app-splash');
+    if (splash) {
+      splash.classList.add('fade-out');
+      setTimeout(() => splash.remove(), 450);
+    }
+
     // Handle import / Web Share Target URL params
     var _urlP = new URLSearchParams(location.search);
     if (_urlP.get("import") === "1" && window.VehicleImport) {
