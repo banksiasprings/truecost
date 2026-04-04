@@ -393,8 +393,8 @@ const Database = {
               <span class="spec-value">${this.formatConsumption(vehicle)}</span>
             </div>
             <div class="spec-item spec-item-wide">
-              <span class="spec-label">Est. annual running cost</span>
-              <span class="spec-value spec-value-cost">${this.formatPrice(annualCost)}/yr</span>
+              <span class="spec-label">Est. running cost</span>
+              <span class="spec-value spec-value-cost">${this.formatPrice(annualCost)}/yr <span class="cost-per-km">$${(annualCost / 15000).toFixed(2)}/km</span></span>
             </div>
           </div>
         </div>
@@ -971,6 +971,13 @@ const Database = {
 
       .spec-value-cost {
         color: #15803D;
+      }
+
+      .cost-per-km {
+        font-size: var(--font-size-xs, 0.75rem);
+        font-weight: 400;
+        color: var(--color-text-muted, #6b7280);
+        margin-left: 4px;
       }
 
       /* ── Remaining vehicles section ── */

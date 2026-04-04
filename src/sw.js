@@ -1,6 +1,6 @@
 // TRUE COST — Service Worker
 // Cache version: bump this string to force all clients to refresh
-const CACHE_NAME = 'truecost-v42';
+const CACHE_NAME = 'truecost-v43';
 
 const PRECACHE_URLS = [
   '/',
