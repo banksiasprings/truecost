@@ -201,6 +201,10 @@
     <section id="page-database" class="page hidden">
       <div id="database-container"></div>
     </section>
+    <!-- ── PAGE: Feedback ── -->
+    <section id="page-feedback" class="page hidden">
+    </section>
+
     <!-- PAGE: Vehicle Detail -->
     <section id="page-detail" class="page hidden">
       <div class="page-header">
@@ -267,6 +271,12 @@
       </svg>
       Settings
     </button>
+    <button class="nav-btn" data-page="feedback" aria-label="Feedback">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      Feedback
+    </button>
   </nav>
 
   <!-- Safe-area spacer for iPhone home indicator -->
@@ -279,25 +289,26 @@
 
 <!-- Scripts (module order matters) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" crossorigin="anonymous"></script>
-    <script src="js/data/australia.js?v=43"></script>
-<script src="js/data/defaults.js?v=43"></script>
-<script src="js/data/model.js?v=43"></script>
-<script src="js/data/storage.js?v=43"></script>
-<script src="js/data/rates-manager.js?v=43"></script>
-<script src="js/calc/depreciation.js?v=43"></script>
-<script src="js/calc/fuel.js?v=43"></script>
-<script src="js/calc/battery.js?v=43"></script>
-<script src="js/calc/registration.js?v=43"></script>
-<script src="js/calc/insurance.js?v=43"></script>
-<script src="js/calc/engine.js?v=43"></script>
-<script src="js/ui/router.js?v=43"></script>
-<script src="data/vehicles.js?v=43"></script>
-<script src="js/ui/import.js?v=43"></script><script src="js/ui/forms.js?v=43"></script>
-<script src="js/ui/detail.js?v=43"></script>
-<script src="js/ui/vehicle-card.js?v=43"></script>
-<script src="js/ui/comparison.js?v=43"></script>
-<script src="js/ui/database.js?v=43"></script>
-<script src="js/ui/app.js?v=43"></script>
+    <script src="js/data/australia.js?v=45"></script>
+<script src="js/data/defaults.js?v=45"></script>
+<script src="js/data/model.js?v=45"></script>
+<script src="js/data/storage.js?v=45"></script>
+<script src="js/data/rates-manager.js?v=45"></script>
+<script src="js/calc/depreciation.js?v=45"></script>
+<script src="js/calc/fuel.js?v=45"></script>
+<script src="js/calc/battery.js?v=45"></script>
+<script src="js/calc/registration.js?v=45"></script>
+<script src="js/calc/insurance.js?v=45"></script>
+<script src="js/calc/engine.js?v=45"></script>
+<script src="js/ui/router.js?v=45"></script>
+<script src="data/vehicles.js?v=45"></script>
+<script src="js/ui/import.js?v=45"></script><script src="js/ui/forms.js?v=45"></script>
+<script src="js/ui/detail.js?v=45"></script>
+<script src="js/ui/vehicle-card.js?v=45"></script>
+<script src="js/ui/comparison.js?v=45"></script>
+<script src="js/ui/database.js?v=45"></script>
+<script src="js/ui/feedback.js?v=45"></script>
+<script src="js/ui/app.js?v=45"></script>
 
 <script>
   // Register service worker

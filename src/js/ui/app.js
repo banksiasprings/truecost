@@ -83,6 +83,7 @@ const App = {
     Router.register("add-vehicle", (params) => Forms.renderAddVehicle(params));
     Router.register("detail",      (params) => VehicleDetail.render(params));
     Router.register("database",    () => { Database.init(); Database.render(); });
+    Router.register("feedback",    () => Feedback.render());
 
     // Start on vehicles page
     Router.navigate("vehicles");
