@@ -1,29 +1,92 @@
 // TRUE COST — ui/feedback.js
 // Feedback tab: bug reports, suggestions, and general feedback via Formspree.
-//
-// IMPORTANT: Replace 'REPLACE_WITH_FORM_ID' below with your Formspree form ID.
-// 1. Go to https://formspree.io and create a free account (target: smcnichol@outlook.com)
-// 2. Create a new form — copy the form ID from the endpoint URL
-// 3. Replace the placeholder below with your real form ID (e.g. 'xpwzgkqb')
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xkopqeny';
 
 const Feedback = {
   _selectedType: 'bug',
+  _rating: 0,
 
   render() {
     const page = document.getElementById('page-feedback');
     if (!page) return;
 
     page.innerHTML = `
+      <style>
+        /* ── Star rating ── */
+        .fb-stars {
+          display: flex;
+          gap: 8px;
+          margin-top: 6px;
+        }
+        .fb-star {
+          font-size: 2rem;
+          cursor: pointer;
+          color: #d1d5db;
+          transition: color 0.12s, transform 0.1s;
+          line-height: 1;
+          user-select: none;
+          -webkit-user-select: none;
+        }
+        .fb-star.lit      { color: #f59e0b; }
+        .fb-star:active   { transform: scale(1.25); }
+        .fb-star-label {
+          font-size: var(--font-size-xs, 0.75rem);
+          color: var(--color-text-muted, #6b7280);
+          margin-top: 4px;
+          min-height: 1.2em;
+        }
+
+        /* ── Type selector ── */
+        .feedback-type-row {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+        .feedback-type-btn {
+          flex: 1;
+          min-width: 90px;
+          padding: 10px 8px;
+          border-radius: var(--radius-full, 9999px);
+          border: 1.5px solid var(--color-border, #e5e7eb);
+          background: var(--color-surface, #fff);
+          color: var(--color-text-muted, #6b7280);
+          font-size: var(--font-size-sm, 0.875rem);
+          font-weight: 500;
+          cursor: pointer;
+          transition: border-color 0.15s, background 0.15s, color 0.15s;
+          white-space: nowrap;
+        }
+        .feedback-type-btn.active {
+          border-color: var(--color-primary, #0066cc);
+          background: var(--color-primary, #0066cc);
+          color: #fff;
+        }
+      </style>
+
       <div class="page-header">
         <h1 class="page-title">Send Feedback</h1>
       </div>
       <p style="color:var(--color-text-muted);font-size:var(--font-size-sm);margin-bottom:var(--space-5)">
-        Found a bug or have a suggestion? Let us know.
+        Found a bug or have a suggestion? Let us know — your feedback shapes the app.
       </p>
 
       <div id="feedback-form-wrap">
         <div class="card">
+
+          <!-- Star rating -->
+          <div class="form-group">
+            <label class="label">Rate your experience</label>
+            <div class="fb-stars" id="fb-stars">
+              <span class="fb-star" data-star="1">★</span>
+              <span class="fb-star" data-star="2">★</span>
+              <span class="fb-star" data-star="3">★</span>
+              <span class="fb-star" data-star="4">★</span>
+              <span class="fb-star" data-star="5">★</span>
+            </div>
+            <div class="fb-star-label" id="fb-star-label">Tap to rate</div>
+          </div>
+
+          <!-- Type selector -->
           <div class="form-group">
             <label class="label">What kind of feedback?</label>
             <div class="feedback-type-row">
@@ -33,6 +96,7 @@ const Feedback = {
             </div>
           </div>
 
+          <!-- Message -->
           <div class="form-group">
             <label class="label" for="feedback-message">Describe the issue or idea</label>
             <textarea class="input" id="feedback-message" rows="5"
@@ -43,6 +107,7 @@ const Feedback = {
             </small>
           </div>
 
+          <!-- Name -->
           <div class="form-group">
             <label class="label" for="feedback-name">
               Your name
@@ -55,7 +120,9 @@ const Feedback = {
         </div>
       </div>
 
+      <!-- Success -->
       <div id="feedback-success" class="hidden" style="text-align:center;padding:var(--space-8) var(--space-4)">
+        <div id="fb-success-stars" style="font-size:2rem;margin-bottom:var(--space-3);letter-spacing:2px"></div>
         <div style="font-size:3rem;margin-bottom:var(--space-4)">✅</div>
         <h2 style="font-size:var(--font-size-lg);font-weight:700;color:var(--color-text);margin-bottom:var(--space-3)">Thanks!</h2>
         <p style="color:var(--color-text-muted);font-size:var(--font-size-sm)">We'll review your feedback soon.</p>
@@ -64,6 +131,7 @@ const Feedback = {
         </button>
       </div>
 
+      <!-- Error -->
       <div id="feedback-error" class="hidden"
         style="background:#fff3f3;border:1px solid #ffcccc;border-radius:var(--radius-md);
                padding:var(--space-4);margin-top:var(--space-4);
@@ -73,10 +141,38 @@ const Feedback = {
     `;
 
     this._selectedType = 'bug';
+    this._rating = 0;
     this._bindEvents();
   },
 
+  _starLabels: ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent!'],
+
+  _setRating(n) {
+    this._rating = n;
+    document.querySelectorAll('.fb-star').forEach(s => {
+      s.classList.toggle('lit', parseInt(s.dataset.star) <= n);
+    });
+    const lbl = document.getElementById('fb-star-label');
+    if (lbl) lbl.textContent = n > 0 ? `${this._starLabels[n]} (${n}/5)` : 'Tap to rate';
+  },
+
   _bindEvents() {
+    // Star rating — hover preview + click to set
+    const starEls = document.querySelectorAll('.fb-star');
+    starEls.forEach(s => {
+      s.addEventListener('mouseenter', () => {
+        const hov = parseInt(s.dataset.star);
+        starEls.forEach(x => x.classList.toggle('lit', parseInt(x.dataset.star) <= hov));
+      });
+      s.addEventListener('mouseleave', () => this._setRating(this._rating));
+      s.addEventListener('click',      () => this._setRating(parseInt(s.dataset.star)));
+      // Touch
+      s.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        this._setRating(parseInt(s.dataset.star));
+      });
+    });
+
     // Type selector
     document.querySelectorAll('.feedback-type-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -92,21 +188,21 @@ const Feedback = {
     msgEl?.addEventListener('input', () => {
       const len = msgEl.value.trim().length;
       if (len === 0) {
-        hintEl.textContent  = 'Minimum 20 characters';
-        hintEl.style.color  = 'var(--color-text-muted)';
+        hintEl.textContent = 'Minimum 20 characters';
+        hintEl.style.color = 'var(--color-text-muted)';
       } else if (len < 20) {
-        hintEl.textContent  = `${20 - len} more character${20 - len === 1 ? '' : 's'} needed`;
-        hintEl.style.color  = 'var(--color-error, #e63946)';
+        hintEl.textContent = `${20 - len} more character${20 - len === 1 ? '' : 's'} needed`;
+        hintEl.style.color = 'var(--color-error, #e63946)';
       } else {
-        hintEl.textContent  = `${len} characters`;
-        hintEl.style.color  = 'var(--color-text-muted)';
+        hintEl.textContent = `${len} characters`;
+        hintEl.style.color = 'var(--color-text-muted)';
       }
     });
 
     // Submit
     document.getElementById('feedback-submit')?.addEventListener('click', () => this._submit());
 
-    // Send another — re-renders the form
+    // Send another
     document.getElementById('feedback-send-another')?.addEventListener('click', () => this.render());
   },
 
@@ -114,6 +210,7 @@ const Feedback = {
     const message   = document.getElementById('feedback-message')?.value?.trim() ?? '';
     const name      = document.getElementById('feedback-name')?.value?.trim()    ?? '';
     const type      = this._selectedType;
+    const rating    = this._rating;
     const submitBtn = document.getElementById('feedback-submit');
 
     if (message.length < 20) {
@@ -126,7 +223,8 @@ const Feedback = {
     submitBtn.disabled    = true;
     document.getElementById('feedback-error')?.classList.add('hidden');
 
-    const typeLabel = type === 'bug' ? 'Bug Report' : type === 'suggestion' ? 'Suggestion' : 'General Feedback';
+    const typeLabel   = type === 'bug' ? 'Bug Report' : type === 'suggestion' ? 'Suggestion' : 'General Feedback';
+    const ratingLabel = rating > 0 ? `${rating}/5 — ${this._starLabels[rating]}` : 'Not rated';
 
     try {
       const res = await fetch(FORMSPREE_ENDPOINT, {
@@ -134,13 +232,20 @@ const Feedback = {
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body:    JSON.stringify({
           type:     typeLabel,
+          rating:   ratingLabel,
           message,
           name:     name || '(anonymous)',
-          _subject: 'TrueCost Feedback: ' + typeLabel,
+          _subject: `TrueCost ${typeLabel}${rating > 0 ? ' (' + '★'.repeat(rating) + ')' : ''}`,
         }),
       });
 
       if (res.ok) {
+        // Show stars in success screen
+        const successStars = document.getElementById('fb-success-stars');
+        if (successStars && rating > 0) {
+          successStars.textContent = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+          successStars.style.color = '#f59e0b';
+        }
         document.getElementById('feedback-form-wrap')?.classList.add('hidden');
         document.getElementById('feedback-success')?.classList.remove('hidden');
       } else {
