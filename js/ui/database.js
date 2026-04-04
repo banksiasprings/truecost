@@ -177,11 +177,10 @@ const Database = {
     // Apply search filter
     if (this.state.searchQuery) {
       const query = this.state.searchQuery.toLowerCase();
-      vehicles = vehicles.filter(v =>
-        (v.make && v.make.toLowerCase().includes(query)) ||
-        (v.model && v.model.toLowerCase().includes(query)) ||
-        (v.variant && v.variant.toLowerCase().includes(query))
-      );
+      vehicles = vehicles.filter(v => {
+        const combined = `${v.make || ''} ${v.model || ''} ${v.variant || ''}`.toLowerCase();
+        return combined.includes(query);
+      });
     }
 
     // Apply fuel type filter
