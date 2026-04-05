@@ -94,5 +94,6 @@ async function getAllSettings() {
     kmPerYear:           await getSetting("kmPerYear",           Defaults.scenario.kmPerYear),
     state:               await getSetting("state",               Defaults.scenario.state),
     opportunityCostRate: await getSetting("opportunityCostRate", Defaults.scenario.opportunityCostRate),
+    theme:               await getSetting("theme",               "dark"),
   };
 }

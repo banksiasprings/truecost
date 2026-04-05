@@ -15,10 +15,53 @@ const STATES = ["QLD","NSW","VIC","SA","WA","ACT","TAS","NT"];
 
 const App = {
   settings: null,
+  _themeMediaQuery: null,
+  _themeMediaHandler: null,
+  _themeTimer: null,
+
+  // ── Theme engine ─────────────────────────────────────────────
+  applyTheme(themeSetting) {
+    const theme = themeSetting || this.settings?.theme || 'dark';
+
+    // Tear down any previous watchers
+    if (this._themeMediaQuery && this._themeMediaHandler) {
+      this._themeMediaQuery.removeEventListener('change', this._themeMediaHandler);
+      this._themeMediaQuery = null;
+      this._themeMediaHandler = null;
+    }
+    if (this._themeTimer) {
+      clearInterval(this._themeTimer);
+      this._themeTimer = null;
+    }
+
+    const set = (isDark) =>
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+
+    if (theme === 'dark') {
+      set(true);
+    } else if (theme === 'light') {
+      set(false);
+    } else if (theme === 'auto-system') {
+      this._themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      this._themeMediaHandler = (e) => set(e.matches);
+      set(this._themeMediaQuery.matches);
+      this._themeMediaQuery.addEventListener('change', this._themeMediaHandler);
+    } else if (theme === 'auto-time') {
+      const checkTime = () => {
+        const h = new Date().getHours();
+        set(h < 6 || h >= 18); // light 6 am – 6 pm, dark outside that
+      };
+      checkTime();
+      this._themeTimer = setInterval(checkTime, 60 * 1000);
+    }
+  },
 
   async init() {
     // Load settings
     this.settings = await getAllSettings();
+
+    // Apply saved theme immediately (before anything renders)
+    this.applyTheme(this.settings.theme);
 
     // Init RatesManager (loads IndexedDB cache, fires background fetch)
     await RatesManager.init();
@@ -124,13 +167,16 @@ const App = {
     const kmPerYear           = parseInt(document.getElementById("setting-km").value);
     const state               = document.getElementById("setting-state").value;
     const opportunityCostRate = parseFloat(document.getElementById("setting-opportunity").value);
+    const theme               = document.getElementById("setting-theme")?.value || 'dark';
     await Promise.all([
       saveSetting("years",               years),
       saveSetting("kmPerYear",           kmPerYear),
       saveSetting("state",               state),
       saveSetting("opportunityCostRate", opportunityCostRate),
+      saveSetting("theme",               theme),
     ]);
-    this.settings = { years, kmPerYear, state, opportunityCostRate };
+    this.settings = { years, kmPerYear, state, opportunityCostRate, theme };
+    this.applyTheme(theme);
     App.toast("Settings saved", "success");
   },
 
@@ -142,6 +188,7 @@ const App = {
       if (el("setting-km"))          el("setting-km").value          = s.kmPerYear;
       if (el("setting-state"))       el("setting-state").value       = s.state;
       if (el("setting-opportunity")) el("setting-opportunity").value = s.opportunityCostRate;
+      if (el("setting-theme"))       el("setting-theme").value       = s.theme || 'dark';
     }
     this.loadRatesUI();
   },
