@@ -1,8 +1,8 @@
 {
-  "name": "TRUE COST",
-  "short_name": "TrueCost",
-  "description": "Know what your car actually costs",
-  "start_url": "/truecost/",
+  "name": "TRUE COST Pro",
+  "short_name": "TrueCost Pro",
+  "description": "Know what your car actually costs — Pro edition with partner integrations",
+  "start_url": "/truecost-pro/",
   "display": "standalone",
   "background_color": "#08101E",
   "theme_color": "#08101E",
@@ -31,7 +31,7 @@
   ],
   "screenshots": [],
   "share_target": {
-    "action": "/truecost/?share=1",
+    "action": "/truecost-pro/?share=1",
     "method": "GET",
     "params": {
       "url": "url",
@@ -39,5 +39,5 @@
       "title": "title"
     }
   },
-  "scope": "/truecost/"
+  "scope": "/truecost-pro/"
 }
