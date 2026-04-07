@@ -15,3 +15,9 @@ android-twa/local.properties
 
 # Claude worktrees (internal dev tooling — not part of the app)
 .claude/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
