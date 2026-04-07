@@ -8,7 +8,9 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
   },
   "repository": {
     "type": "git",
@@ -24,5 +26,8 @@
   "homepage": "https://github.com/banksiasprings/truecost#readme",
   "dependencies": {
     "@bubblewrap/core": "^1.24.1"
+  },
+  "devDependencies": {
+    "wrangler": "^4.80.0"
   }
 }
