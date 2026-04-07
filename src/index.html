@@ -269,6 +269,14 @@
       </div>
 
       <div class="card">
+        <h2 class="card-title">Data Backup</h2>
+        <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-bottom:var(--space-4)">Export all your vehicles and settings to a JSON file. Use Import to restore on a new device or after clearing browser data.</p>
+        <button class="btn btn-primary btn-full" id="btn-export-data" style="margin-bottom:var(--space-3)">&#11015; Export Backup</button>
+        <input type="file" id="import-file-input" accept=".json" style="display:none">
+        <button class="btn btn-secondary btn-full" id="btn-import-data">&#11014; Import Backup</button>
+        <p id="backup-status" style="font-size:var(--font-size-xs);color:var(--color-success);text-align:center;margin-top:var(--space-2);min-height:1.2em"></p>
+      </div>
+      <div class="card">
         <h2 class="card-title">About</h2>
         <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);line-height:var(--line-height-relaxed)">
           TRUE COST calculates every dimension of vehicle ownership cost over your chosen period —
@@ -422,6 +430,75 @@
     const el = document.getElementById('app-version');
     if (el) el.textContent = APP_VERSION;
   });
+</script>
+<script>
+(function() {
+  // ?? Data Backup ??????????????????????????????????????
+  document.addEventListener('DOMContentLoaded', function() {
+    const exportBtn = document.getElementById('btn-export-data');
+    const importBtn = document.getElementById('btn-import-data');
+    const importInput = document.getElementById('import-file-input');
+    const statusEl = document.getElementById('backup-status');
+
+    function setStatus(msg, isError) {
+      if (!statusEl) return;
+      statusEl.textContent = msg;
+      statusEl.style.color = isError ? 'var(--color-error, #ef4444)' : 'var(--color-success, #22c55e)';
+      setTimeout(() => { statusEl.textContent = ''; }, 4000);
+    }
+
+    if (exportBtn) {
+      exportBtn.addEventListener('click', async function() {
+        try {
+          exportBtn.textContent = 'Exporting...';
+          exportBtn.disabled = true;
+          const data = await exportAllData();
+          const json = JSON.stringify(data, null, 2);
+          const blob = new Blob([json], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          const date = new Date().toISOString().slice(0, 10);
+          a.href = url;
+          a.download = 'truecost-backup-' + date + '.json';
+          a.click();
+          URL.revokeObjectURL(url);
+          setStatus('Backup exported successfully.');
+        } catch (e) {
+          setStatus('Export failed: ' + e.message, true);
+        } finally {
+          exportBtn.textContent = '⬇ Export Backup';
+          exportBtn.disabled = false;
+        }
+      });
+    }
+
+    if (importBtn && importInput) {
+      importBtn.addEventListener('click', function() { importInput.click(); });
+      importInput.addEventListener('change', async function() {
+        const file = importInput.files[0];
+        if (!file) return;
+        importInput.value = '';
+        try {
+          importBtn.textContent = 'Importing...';
+          importBtn.disabled = true;
+          const text = await file.text();
+          const data = JSON.parse(text);
+          if (!confirm('This will replace ALL your current vehicles and settings with the backup. Continue?')) {
+            return;
+          }
+          await importAllData(data);
+          setStatus('Backup imported! Reloading...');
+          setTimeout(() => location.reload(), 1200);
+        } catch (e) {
+          setStatus('Import failed: ' + e.message, true);
+        } finally {
+          importBtn.textContent = '⬆ Import Backup';
+          importBtn.disabled = false;
+        }
+      });
+    }
+  });
+})();
 </script>
 </body>
 </html>
