@@ -114,6 +114,27 @@ const App = {
       App.toast("All rates reset to official values", "success");
     });
 
+    // Wire info tip buttons
+    document.getElementById("btn-fuel-info")?.addEventListener("click", () => {
+      App.showInfoModal(
+        "Fuel Price Source",
+        `Fuel prices are the <strong>AIP (Australian Institute of Petroleum) national weekly average</strong> — the same data used by RACQ, NRMA and major news outlets.<br><br>` +
+        `Prices update automatically every Monday via a background job. The date shown next to "Update Rates" reflects the latest update.<br><br>` +
+        `<strong>Premium 95 &amp; 98</strong> are estimated from ULP 91 using typical Australian retail differentials (~15 and ~30 c/L). ` +
+        `<strong>EV rates</strong> are indicative averages — check your energy provider for exact figures.<br><br>` +
+        `You can override any value above — your customisations are saved and survive automatic updates.`
+      );
+    });
+    document.getElementById("btn-rego-info")?.addEventListener("click", () => {
+      App.showInfoModal(
+        "Registration Estimate Source",
+        `Registration figures are <strong>indicative annual estimates</strong> based on state government fee schedules for a typical passenger vehicle.<br><br>` +
+        `<strong>Where CTP (Compulsory Third Party) insurance is shown as $0</strong> (VIC, ACT), it is included in the registration fee. Other states list it separately and the total shown combines both.<br><br>` +
+        `Actual costs vary by vehicle type, engine size, weight, and concession status. Always check your state transport department for exact figures:<br><br>` +
+        `QLD: tmr.qld.gov.au &nbsp;·&nbsp; NSW: service.nsw.gov.au &nbsp;·&nbsp; VIC: vicroads.vic.gov.au &nbsp;·&nbsp; SA: sa.gov.au &nbsp;·&nbsp; WA: transport.wa.gov.au`
+      );
+    });
+
     // Re-render rates panel whenever background fetch completes
     document.addEventListener("rates-updated", () => {
       if (Router.current() === "settings") this.loadRatesUI();
@@ -274,6 +295,25 @@ const App = {
         App.toast("Rate reset", "default", 1500);
       });
     });
+  },
+
+  showInfoModal(title, bodyHtml) {
+    const existing = document.getElementById('tc-info-modal');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'tc-info-modal';
+    overlay.innerHTML = `
+      <div class="tc-info-sheet">
+        <div class="tc-info-handle"></div>
+        <div class="tc-info-title">${title}</div>
+        <div class="tc-info-body">${bodyHtml}</div>
+        <button class="tc-info-close" id="tc-info-close-btn">Got it</button>
+      </div>`;
+
+    document.body.appendChild(overlay);
+    document.getElementById('tc-info-close-btn').onclick = () => overlay.remove();
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
   },
 
   showConfirmModal(title, onConfirm) {

@@ -576,6 +576,54 @@
 }
 .btn-rate-reset:hover { border-color: var(--color-accent); color: var(--color-accent); }
 
+/* ── Info tip button (ⓘ) ── */
+.btn-info-tip {
+  background: none; border: none; padding: 2px 4px;
+  font-size: 15px; line-height: 1; cursor: pointer;
+  color: var(--color-text-muted); opacity: 0.7;
+  transition: opacity var(--transition-fast), color var(--transition-fast);
+  flex-shrink: 0;
+}
+.btn-info-tip:hover { opacity: 1; color: var(--color-primary); }
+
+/* ── Info modal (rates source explanation) ── */
+#tc-info-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45); z-index: 9001;
+  display: flex; align-items: flex-end; justify-content: center;
+  animation: tcFadeIn 0.15s ease;
+}
+#tc-info-modal .tc-info-sheet {
+  background: var(--color-surface);
+  border-radius: 20px 20px 0 0;
+  padding: 24px 24px 40px;
+  width: 100%; max-width: 480px;
+  animation: tcSlideUp 0.25s cubic-bezier(0.32,0.72,0,1);
+  box-shadow: 0 -4px 32px rgba(0,0,0,0.20);
+}
+#tc-info-modal .tc-info-handle {
+  width: 40px; height: 4px; border-radius: 2px;
+  background: var(--color-border-strong);
+  margin: 0 auto 18px;
+}
+#tc-info-modal .tc-info-title {
+  font-size: 1rem; font-weight: 600;
+  color: var(--color-text); margin-bottom: 12px;
+}
+#tc-info-modal .tc-info-body {
+  font-size: var(--font-size-sm); color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+#tc-info-modal .tc-info-body a {
+  color: var(--color-primary); text-decoration: none;
+}
+#tc-info-modal .tc-info-close {
+  display: block; width: 100%; margin-top: 20px; padding: 13px;
+  background: var(--color-bg-input); border: none;
+  border-radius: var(--radius-md); font-size: 1rem;
+  color: var(--color-text); cursor: pointer;
+}
+
 /* ── Vehicle preset search (in forms) ── */
 .preset-search-wrap { margin-bottom: var(--space-5); border-bottom: 1px solid var(--color-border); padding-bottom: var(--space-5); }
 .preset-hint { font-weight: 400; color: var(--color-text-muted); font-size: var(--font-size-xs); }

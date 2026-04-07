@@ -1,15 +1,15 @@
 {
   "meta": {
-    "updated": "2026-04-01T00:00:00Z",
-    "source": "AIP (fuel) + state transport departments (rego)",
+    "updated": "2026-04-05T00:00:00Z",
+    "source": "AIP weekly average (auto-updated every Monday)",
     "version": "1.0",
-    "notes": "Rego totals are estimates including CTP where bundled. Verify at your state transport dept."
+    "notes": "Fuel = AIP national weekly average (http://api.aip.com.au). Premium95/98 = ULP91 + typical differential. Rego = state transport dept estimates; CTP included where bundled."
   },
   "fuel": {
-    "ulp91": 175,
-    "premium95": 190,
-    "premium98": 205,
-    "diesel": 185,
+    "ulp91": 253,
+    "premium95": 268,
+    "premium98": 283,
+    "diesel": 187,
     "lpg": 88,
     "evHomeRate": 30,
     "evPublicRate": 60
