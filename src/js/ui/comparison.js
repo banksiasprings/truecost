@@ -203,10 +203,10 @@ const Comparison = {
 
     container.innerHTML = html;
 
-    requestAnimationFrame(function() {
+    setTimeout(function() {
       Comparison._renderSparkline(yearlyData, yearRange);
       Comparison._renderYbyY(results, yearlyData, yearRange);
-    });
+    }, 50);
   },
 
   // ── Dual horizontal bars (2-vehicle comparison) ───────────────────────
