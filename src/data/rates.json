@@ -1,14 +1,14 @@
 {
   "meta": {
-    "updated": "2026-04-27T05:26:38Z",
+    "updated": "2026-05-04T05:36:41Z",
     "source": "AIP weekly average (auto-updated every Monday)",
     "version": "1.0",
     "notes": "Fuel = AIP national weekly average (http://api.aip.com.au). Premium95/98 = ULP91 + typical differential. Rego = state transport dept estimates; CTP included where bundled."
   },
   "fuel": {
-    "ulp91": 212.9,
-    "premium95": 227.9,
-    "premium98": 242.9,
+    "ulp91": 183.4,
+    "premium95": 198.4,
+    "premium98": 213.4,
     "diesel": 187,
     "lpg": 88,
     "evHomeRate": 30,
